@@ -4,10 +4,15 @@ module.exports = {
     'es6': true,
     'jest': true
   },
+  plugins: [
+    '@typescript-eslint'
+  ],
   extends: [
     'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
     'plugin:jest/recommended'
   ],
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     'sourceType': 'module',
     'ecmaVersion': 2021

@@ -1,7 +1,7 @@
 const getUrls = require('get-urls');
 
-const parseProductUrls = (text) => {
-  let urls = Array.from(getUrls(text, {
+const parseProductUrls = (text: string) => {
+  let urls = Array.from<string>(getUrls(text, {
     forceHttps: true,
     removeSingleSlash: true,
     removeTrailingSlash: true,
@@ -14,4 +14,4 @@ const parseProductUrls = (text) => {
   return urls;
 };
 
-exports.parseProductUrls = parseProductUrls;
+export default parseProductUrls;

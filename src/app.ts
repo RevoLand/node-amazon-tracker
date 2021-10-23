@@ -1,6 +1,6 @@
 // var database = require('./config/database');
-const { parseProductUrls } = require('./components/product/productUrlHelper');
-const productParser = require('./components/product/productParser');
+import parseProductUrls from './components/product/productUrlHelper';
+import productParser from './components/product/productParser';
 
 const main = async () => {
   const testProducts = [
@@ -16,7 +16,7 @@ const main = async () => {
 
   for (const productUrl of parsedProductUrls) {
     await productParser(productUrl);
-    await new Promise(r => setTimeout(r, 1400));
+    await new Promise(r => setTimeout(r, 800));
   }
 };
 

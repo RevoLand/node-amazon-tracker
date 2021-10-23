@@ -1,13 +1,10 @@
+import { CheerioAPI } from "cheerio";
+
 const puppeteer = require('puppeteer');
-const cheerio = require('cheerio')
+const cheerio = require('cheerio');
+const { trimNewLines } = require('../../helpers/common');
 
-/** @param {string} text */
-const trimNewLines = (text) => text.replace(/\n/g, '');
-
-/**
- * @param {cheerio.CheerioAPI} $
-*/
-const getAvailability = async ($) => {
+const getAvailability = async ($: CheerioAPI) => {
   const stockText = $('#availability_feature_div > #availability').text() || $('form#addToCart #availability').text();
   const stock = stockText.match(/\d+/)?.join('') ?? '';
   const seller = trimNewLines($('#merchant-info > span').text());
@@ -20,11 +17,8 @@ const getAvailability = async ($) => {
   }
 }
 
-/**
- * @param {cheerio.CheerioAPI} $
-*/
-const getProductPrice = async ($) => {
-  const price = trimNewLines($('#booksHeaderSection > #price').text() || $('#priceInsideBuyBox_feature_div #price_inside_buybox').text());
+const getProductPrice = async ($: CheerioAPI) => {
+  const price = trimNewLines($('#booksHeaderSection #price').text() || $('#priceInsideBuyBox_feature_div #price_inside_buybox').text());
 
   try {
     return {
@@ -38,22 +32,25 @@ const getProductPrice = async ($) => {
   }
 }
 
-/**
- * @param {cheerio.CheerioAPI} $
-*/
-const getProduct = async ($) => {
+const getProduct = async ($: CheerioAPI) => {
   const title = trimNewLines($('#title #productTitle').text());
   const asin = $('#ASIN').val();
   const image = $('#imgTagWrapperId #landingImage').attr('src') || $('#imgBlkFront').attr('src');
+  const primeOnly = $('#tryPrimeButton_').length > 0;
+  const abroad = $('#globalStoreBadgePopoverInsideBuybox_feature_div').text();
+  const shippingFee = $('#mir-layout-DELIVERY_BLOCK-slot-DELIVERY_MESSAGE a').text();
 
   return {
     title,
     asin,
-    image
+    image,
+    primeOnly,
+    abroad,
+    shippingFee
   };
 }
 
-const productParser = async (url) => {
+const productParser = async (url: string) => {
   console.log('Parsing product:', url);
   try {
     const browser = await puppeteer.launch({
@@ -99,4 +96,4 @@ const productParser = async (url) => {
   }
 }
 
-module.exports = productParser;
+export default productParser;
