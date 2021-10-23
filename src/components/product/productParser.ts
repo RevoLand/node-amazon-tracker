@@ -1,8 +1,7 @@
-import { CheerioAPI } from "cheerio";
-
-const puppeteer = require('puppeteer');
-const cheerio = require('cheerio');
-const { trimNewLines } = require('../../helpers/common');
+import { CheerioAPI, load } from 'cheerio';
+import { existsSync, mkdirSync } from 'fs';
+import puppeteer from 'puppeteer';
+import { trimNewLines } from '../../helpers/common';
 
 const getAvailability = async ($: CheerioAPI) => {
   const stockText = $('#availability_feature_div > #availability').text() || $('form#addToCart #availability').text();
@@ -50,7 +49,7 @@ const getProduct = async ($: CheerioAPI) => {
   };
 }
 
-const productParser = async (url: string) => {
+const productParser = async (url: string): Promise<boolean> => {
   console.log('Parsing product:', url);
   try {
     const browser = await puppeteer.launch({
@@ -70,7 +69,7 @@ const productParser = async (url: string) => {
     const content = (await page.content()).replace(/\n\s*\n/gm, '');
 
     // Load the content into cheerio for easier parsing
-    const $ = cheerio.load(content);
+    const $ = load(content);
 
     const product = await getProduct($);
     const price = await getProductPrice($);
@@ -83,6 +82,10 @@ const productParser = async (url: string) => {
       availability
     });
 
+    if (!existsSync('products')) {
+      mkdirSync('products');
+    }
+
     // Take a screenshot of the page for testing purposes
     await page.screenshot({
       path: `products/${product.asin}.png`
@@ -94,6 +97,9 @@ const productParser = async (url: string) => {
     console.log('hata', err);
     return false;
   }
+
+  console.log('Product parsed:', url);
+  return true;
 }
 
 export default productParser;
