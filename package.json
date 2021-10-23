@@ -1,0 +1,33 @@
+{
+  "name": "node-amazon-tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RevoLand/node-amazon-tracker.git"
+  },
+  "author": "Mert Ercan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RevoLand/node-amazon-tracker/issues"
+  },
+  "homepage": "https://github.com/RevoLand/node-amazon-tracker#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.10",
+    "dotenv": "^10.0.0",
+    "get-urls": "^10.0.1",
+    "puppeteer": "^10.4.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.2",
+    "eslint": "^7.32.0",
+    "eslint-plugin-jest": "^25.2.2",
+    "eslint-plugin-node": "^11.1.0",
+    "jest": "^27.3.1"
+  }
+}
