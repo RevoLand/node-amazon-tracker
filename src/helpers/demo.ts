@@ -12,19 +12,20 @@ export const createDemoProductData = async (): Promise<void> => {
 
   for (const productAsin of demoProducts) {
     const product = new Product;
+    const productDetails = new ProductDetail;
     product.asin = productAsin;
     product.tracking_countries = ['tr'];
     await product.save();
 
-    product.productDetail = new ProductDetail;
-    product.productDetail.asin = product.asin;
-    product.productDetail.name = productAsin;
-    product.productDetail.country = 'tr';
-    product.productDetail.enabled = true;
-    product.productDetail.price = 0;
-    product.productDetail.lowest_price = 0;
-    product.productDetail.current_price = 0;
-    product.productDetail.save();
+    productDetails.asin = productAsin;
+    productDetails.name = productAsin;
+    productDetails.country = 'tr';
+    productDetails.enabled = true;
+    productDetails.price = 0;
+    productDetails.lowest_price = 0;
+    productDetails.current_price = 0;
+    productDetails.product = product;
+    await productDetails.save();
   }
 
   console.log('Demo Product Data created.');

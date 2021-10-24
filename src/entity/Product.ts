@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, OneToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { ProductDetail } from './ProductDetail';
 
 @Entity('products')
@@ -20,11 +20,11 @@ export class Product extends BaseEntity {
     @UpdateDateColumn()
     updated_at: Date;
 
-    @OneToOne(() => ProductDetail, productDetail => productDetail.asin, {
+    @OneToMany(() => ProductDetail, productDetail => productDetail.product, {
       onDelete: 'CASCADE',
       onUpdate: 'NO ACTION'
     })
-    productDetail: ProductDetail
+    productDetails: ProductDetail[]
 
     static findByAsin(asin: string): Promise<Product | undefined> {
       return this.createQueryBuilder('products').where('products.asin = :asin', { asin }).getOne();

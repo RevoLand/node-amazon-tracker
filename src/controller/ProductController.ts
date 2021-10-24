@@ -3,6 +3,6 @@ import { Product } from '../entity/Product';
 
 export class ProductController {
   static getAll = () => getRepository(Product).find({
-    relations: ['productDetail']
+    relations: ['productDetails']
   });
 }

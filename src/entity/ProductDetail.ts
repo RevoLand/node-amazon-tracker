@@ -1,4 +1,5 @@
-import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { URLSearchParams } from 'url';
 import { Product } from './Product';
 
 @Entity('product_details')
@@ -6,14 +7,7 @@ export class ProductDetail extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToOne(() => Product, {
-      onDelete: 'CASCADE',
-      onUpdate: 'NO ACTION'
-    })
-    @JoinColumn({
-      name: 'asin',
-      referencedColumnName: 'asin'
-    })
+    @Column()
     asin: string;
 
     @Column()
@@ -52,6 +46,11 @@ export class ProductDetail extends BaseEntity {
     })
     seller?: string;
 
+    @Column({
+      nullable: true
+    })
+    seller_id: string;
+
     @Column('tinyint', {
       width: 1,
       default: 1
@@ -63,4 +62,31 @@ export class ProductDetail extends BaseEntity {
 
     @UpdateDateColumn()
     updated_at: Date;
+
+    @ManyToOne(() => Product, product => product.productDetails, {
+      onDelete: 'CASCADE',
+      onUpdate: 'NO ACTION'
+    })
+    @JoinColumn({
+      name: 'asin',
+      referencedColumnName: 'asin'
+    })
+    product: Product;
+
+    getUrl = () => {
+      // Amazon tr seller id: A1UNQM1SR2CHM
+      const queryParameters = new URLSearchParams();
+      let productUrl = `https://www.amazon.com.tr/gp/product/${this.asin}/`;
+
+      if (this.seller_id) {
+        queryParameters.append('smid', this.seller_id);
+      }
+
+      if (queryParameters.toString().length > 0) {
+        productUrl += '?';
+        productUrl += queryParameters.toString();
+      }
+
+      return productUrl;
+    }
 }
