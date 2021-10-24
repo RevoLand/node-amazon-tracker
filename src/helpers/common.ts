@@ -1,1 +1,1 @@
-export const trimNewLines = (text: string) => text.replace(/\n/g, '');
+export const trimNewLines = (text: string): string => text.replace(/\n/g, '');

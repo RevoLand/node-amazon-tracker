@@ -1,28 +1,10 @@
 import 'dotenv/config'
 import 'reflect-metadata';
-import { Connection, createConnection } from 'typeorm';
-import database from './config/database';
+import { connectToSql } from './helpers/sql';
 
 const main = async () => {
-  try {
-    const sqlConnection: Connection = await createConnection({
-      type: 'mysql',
-      host: database.hostname,
-      port: database.port,
-      username: database.user,
-      password: database.password,
-      database: database.name,
-      entities: [
-        __dirname + '/entity/*.ts'
-      ],
-      synchronize: true,
-      logging: false
-    });
-  } catch (err) {
-    console.error('sql connection error', err);
-  }
-
-  console.log('Bağlandık.');
+  const sqlConnection = await connectToSql();
+  // await productParser('https://www.amazon.com.tr/gp/product/6058821002/ref=ox_sc_act_image_1?smid=A1UNQM1SR2CHM&psc=1');
 };
 
 main();
