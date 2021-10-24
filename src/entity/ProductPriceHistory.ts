@@ -1,8 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
+import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { ProductDetail } from './ProductDetail';
 
 @Entity('product_price_histories')
-export class ProductPriceHistory {
+export class ProductPriceHistory extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -28,6 +28,6 @@ export class ProductPriceHistory {
     })
     new_price: number;
 
-    @Column('timestamp')
-    created_at: string;
+    @CreateDateColumn()
+    created_at: Date;
 }

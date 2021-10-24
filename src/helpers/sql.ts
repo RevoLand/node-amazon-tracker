@@ -24,6 +24,7 @@ export const connectToSql = async (): Promise<Connection | undefined> => {
     return sqlConnection;
   } catch (error) {
     console.error('An error happened while connecting to SQL.', error);
+
     exit(ExitCodes.SQLConnectionFailed);
   }
 };

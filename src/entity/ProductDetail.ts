@@ -1,8 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
+import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Product } from './Product';
 
 @Entity('product_details')
-export class ProductDetail {
+export class ProductDetail extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -19,10 +19,14 @@ export class ProductDetail {
     @Column()
     country: string;
 
-    @Column()
+    @Column({
+      nullable: true
+    })
     name?: string;
 
-    @Column()
+    @Column({
+      nullable: true
+    })
     image?: string;
 
     @Column('decimal', {
@@ -43,17 +47,20 @@ export class ProductDetail {
     })
     current_price: number;
 
-    @Column()
+    @Column({
+      nullable: true
+    })
     seller?: string;
 
     @Column('tinyint', {
-      width: 1
+      width: 1,
+      default: 1
     })
     enabled = true;
 
-    @Column('timestamp')
-    created_at: string;
+    @CreateDateColumn()
+    created_at: Date;
 
-    @Column('timestamp')
-    updated_at: string;
+    @UpdateDateColumn()
+    updated_at: Date;
 }
