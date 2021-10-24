@@ -25,21 +25,24 @@ export class ProductDetail extends BaseEntity {
 
     @Column('decimal', {
       precision: 14,
-      scale: 2
+      scale: 2,
+      nullable: true
     })
-    price: number;
+    price?: number;
 
     @Column('decimal', {
       precision: 14,
-      scale: 2
+      scale: 2,
+      nullable: true
     })
-    lowest_price: number;
+    lowest_price?: number;
 
     @Column('decimal', {
       precision: 14,
-      scale: 2
+      scale: 2,
+      nullable: true
     })
-    current_price: number;
+    current_price?: number;
 
     @Column({
       nullable: true
@@ -49,7 +52,12 @@ export class ProductDetail extends BaseEntity {
     @Column({
       nullable: true
     })
-    seller_id: string;
+    seller_id?: string;
+
+    @Column({
+      nullable: true
+    })
+    psc?: number;
 
     @Column('tinyint', {
       width: 1,
@@ -80,6 +88,10 @@ export class ProductDetail extends BaseEntity {
 
       if (this.seller_id) {
         queryParameters.append('smid', this.seller_id);
+      }
+
+      if (this.psc) {
+        queryParameters.append('psc', this.psc.toString());
       }
 
       if (queryParameters.toString().length > 0) {

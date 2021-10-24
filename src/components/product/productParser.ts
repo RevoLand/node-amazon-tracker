@@ -1,55 +1,66 @@
 import { CheerioAPI, load } from 'cheerio';
-import { existsSync, mkdirSync } from 'fs';
 import puppeteer from 'puppeteer';
 import { trimNewLines } from '../../helpers/common';
 
-const getAvailability = async ($: CheerioAPI) => {
-  const stockText = $('#availability_feature_div > #availability').text() || $('form#addToCart #availability').text();
-  const stock = stockText.match(/\d+/)?.join('') ?? '';
-  const seller = trimNewLines($('#merchant-info > span').text());
+export interface ProductParser {
+  title: string,
+  asin: string,
+  image?: string,
+  locale: string,
+  primeOnly?: boolean,
+  abroad?: boolean,
+  shippingFee?: string,
 
-  return {
-    available: stockText.includes('Stokta'),
-    stock,
-    seller,
-    stockText,
-  }
+  price?: number,
+
+  stock?: number,
+  stockText?: string,
+  seller?: string,
+  available?: boolean
 }
 
-const getProductPrice = async ($: CheerioAPI) => {
-  const price = trimNewLines($('#booksHeaderSection #price').text() || $('#priceInsideBuyBox_feature_div #price_inside_buybox').text());
 
+const getParsedProductData = ($: CheerioAPI): ProductParser | undefined => {
   try {
-    return {
-      price
-    }
-  } catch (err) {
-    return {
-      error: true,
-      err
-    }
+    // const htmlLang = $('html').attr('lang');
+    const locale = $('.nav-logo-locale').text();
+    const title = trimNewLines($('#title #productTitle').text());
+    const asin = '' + $('#ASIN').val();
+    const image = $('#imgTagWrapperId #landingImage').attr('src') || $('#imgBlkFront').attr('src');
+    const primeOnly = $('#tryPrimeButton_').length > 0;
+    const abroad = $('#globalStoreBadgePopoverInsideBuybox_feature_div').text()?.length > 0;
+    const shippingFee = $('#mir-layout-DELIVERY_BLOCK-slot-DELIVERY_MESSAGE a').text();
+
+    const priceText = ($('#booksHeaderSection #price').text() || $('#priceInsideBuyBox_feature_div #price_inside_buybox').text()).replace(/[^0-9,.]/g, '').replace(/\./g, '').replace(',', '.');
+    const price = priceText.length > 0 ? parseFloat(priceText) : undefined;
+
+    const stockText = $('#availability_feature_div > #availability').text() || $('form#addToCart #availability').text();
+    const stock = (stockText?.replace(/[^0-9]/g, '')) ? Number(stockText.replace(/[^0-9]/g, '')) : undefined;
+    const seller = trimNewLines($('#merchant-info > span').text());
+
+    const product: ProductParser = {
+      title,
+      asin,
+      image,
+      locale,
+      primeOnly,
+      abroad,
+      shippingFee,
+
+      price,
+
+      stockText,
+      stock,
+      seller
+    };
+
+    return product;
+  } catch (error) {
+    console.error('getParsedProductData error', error);
   }
 }
 
-const getProduct = async ($: CheerioAPI) => {
-  const title = trimNewLines($('#title #productTitle').text());
-  const asin = $('#ASIN').val();
-  const image = $('#imgTagWrapperId #landingImage').attr('src') || $('#imgBlkFront').attr('src');
-  const primeOnly = $('#tryPrimeButton_').length > 0;
-  const abroad = $('#globalStoreBadgePopoverInsideBuybox_feature_div').text();
-  const shippingFee = $('#mir-layout-DELIVERY_BLOCK-slot-DELIVERY_MESSAGE a').text();
-
-  return {
-    title,
-    asin,
-    image,
-    primeOnly,
-    abroad,
-    shippingFee
-  };
-}
-
-const productParser = async (url: string): Promise<boolean> => {
+const productParser = async (url: string): Promise<ProductParser | undefined> => {
   console.log('Parsing product:', url);
   try {
     const browser = await puppeteer.launch({
@@ -71,35 +82,15 @@ const productParser = async (url: string): Promise<boolean> => {
     // Load the content into cheerio for easier parsing
     const $ = load(content);
 
-    const product = await getProduct($);
-    const price = await getProductPrice($);
-    const availability = await getAvailability($);
-
-    console.log('product', {
-      url,
-      product,
-      price,
-      availability
-    });
-
-    if (!existsSync('products')) {
-      mkdirSync('products');
-    }
-
-    // Take a screenshot of the page for testing purposes
-    await page.screenshot({
-      path: `products/${product.asin}.png`
-    });
+    const product = getParsedProductData($);
 
     // Close the browser
     await browser.close();
-  } catch (err) {
-    console.log('hata', err);
-    return false;
-  }
 
-  console.log('Product parsed:', url);
-  return true;
+    return product;
+  } catch (error) {
+    console.log('productParser error', error);
+  }
 }
 
 export default productParser;
