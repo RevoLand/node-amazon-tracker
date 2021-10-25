@@ -1,4 +1,3 @@
-import { exit } from 'process';
 import { getRepository } from 'typeorm';
 import { URL } from 'url';
 import productParser from '../components/product/productParser';
@@ -31,7 +30,6 @@ export class ProductController {
   }
 
   static createProductFromUrl = async (url: string) => {
-    // https://www.amazon.com.tr/gp/product/6058821002/ref=ox_sc_act_image_1?smid=A1UNQM1SR2CHM&psc=1
     const urlParameters = (new URL(url)).searchParams;
     const parsedProductData = await productParser(url);
     const seller_id = urlParameters.has('smid') ? urlParameters.get('smid') ?? '' : undefined;
@@ -82,7 +80,6 @@ export class ProductController {
     };
     await ProductDetailController.createProductDetail(productDetail);
 
-    console.log('product created!');
-    exit();
+    // TODO: Discord related actions?
   }
 }

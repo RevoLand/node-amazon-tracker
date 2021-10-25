@@ -27,6 +27,8 @@ export class ProductDetailController {
 
     await productDetail.save();
 
+    // TODO: Discord related actions?
+
     return productDetail;
   }
 
@@ -46,6 +48,18 @@ export class ProductDetailController {
     productDetail.current_price = productDetailInterface.parsedData.price;
     await productDetail.save();
 
+    // TODO: Discord related actions?
+
     return productDetail;
   };
+
+  static disableProductTracking = async (productDetail: ProductDetail) => {
+    productDetail.enabled = false;
+
+    await productDetail.save();
+
+    // TODO: Discord related actions?
+
+    return productDetail;
+  }
 }
