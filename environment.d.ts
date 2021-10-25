@@ -6,6 +6,9 @@ declare global {
       DB_NAME: string;
       DB_USER: string;
       DB_PASSWORD: string;
+      DISCORD_BOT_TOKEN: string;
+      DISCORD_CLIENT_ID: string;
+      DISCORD_GUILD_ID: string;
     }
   }
 }
