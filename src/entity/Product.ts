@@ -25,9 +25,4 @@ export class Product extends BaseEntity {
       onUpdate: 'NO ACTION'
     })
     productDetails: ProductDetail[]
-
-    static findByAsin(asin: string): Promise<Product | undefined> {
-      // TODO: load product details (relation)
-      return this.createQueryBuilder('products').where('products.asin = :asin', { asin }).getOne();
-    }
 }

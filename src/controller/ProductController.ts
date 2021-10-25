@@ -3,13 +3,21 @@ import { getRepository } from 'typeorm';
 import { URL } from 'url';
 import productParser from '../components/product/productParser';
 import { Product } from '../entity/Product';
-import { ProductDetail } from '../entity/ProductDetail';
 import { ProductDetailController, ProductDetailInterface } from './ProductDetailController';
 
 export class ProductController {
   static getAll = () => getRepository(Product).find({
     relations: ['productDetails']
   });
+
+  static findByAsin(asin: string): Promise<Product | undefined> {
+    return getRepository(Product).findOne({
+      where: {
+        asin
+      },
+      relations: ['productDetails']
+    });
+  }
 
   static createProduct = async (asin: string, locale: string): Promise<Product> => {
     const product = new Product;
@@ -38,7 +46,7 @@ export class ProductController {
       return;
     }
 
-    const existingProduct = await Product.findByAsin(parsedProductData.asin);
+    const existingProduct = await this.findByAsin(parsedProductData.asin);
     if (existingProduct) {
       console.log('Product already exists. Updating the current product.', existingProduct);
       existingProduct.tracking_countries = [...new Set([...existingProduct.tracking_countries, parsedProductData.locale])];
