@@ -1,8 +1,8 @@
 To-do list or stuff that are existing in the c# version of the tracker yet missing in this one.
 ---
-- [ ] [Typescript](https://github.com/RevoLand/node-amazon-tracker/issues/1)
-- [ ] [MySQL integration for products and price history](https://github.com/RevoLand/node-amazon-tracker/issues/2)
-- [ ] [Discord integration](https://github.com/RevoLand/node-amazon-tracker/issues/3)
+- [x] [Typescript](https://github.com/RevoLand/node-amazon-tracker/issues/1)
+- [x] [MySQL integration for products and price history](https://github.com/RevoLand/node-amazon-tracker/issues/2)
+- [x] [Discord integration](https://github.com/RevoLand/node-amazon-tracker/issues/3)
   - [ ] Tracking products, stopping product tracking
   - [ ] Tracker related settings
   - [ ] Notifications related to price changes
