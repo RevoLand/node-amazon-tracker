@@ -1,4 +1,4 @@
-import parseProductUrls from './productUrlHelper';
+import { parseProductUrls } from './productUrlHelper';
 
 describe('parse product urls from text', () => {
   const textWithSingleUrl = 'Merhaba dünya! https://www.amazon.com.tr/gp/product/6058821002/ref=ox_sc_act_image_1?smid=A1UNQM1SR2CHM&psc=1';

@@ -1,29 +1,22 @@
-import { ProductParser } from '../components/product/productParser';
-import { Product } from '../entity/Product';
 import { ProductDetail } from '../entity/ProductDetail';
-
-export interface ProductDetailInterface {
-  product: Product,
-  parsedData: ProductParser,
-  seller_id?: string | undefined,
-  psc?: number | undefined
-}
+import { ProductDetailParseResultInterface } from '../interfaces/ProductDetailParseResultInterface';
 
 export class ProductDetailController {
-  static createProductDetail = async (createProductDetailInterface: ProductDetailInterface): Promise<ProductDetail> => {
+  static createProductDetail = async (productDetailInterface: ProductDetailParseResultInterface): Promise<ProductDetail> => {
     const productDetail = new ProductDetail;
 
-    productDetail.asin = createProductDetailInterface.parsedData.asin;
-    productDetail.name = createProductDetailInterface.parsedData.title;
-    productDetail.country = createProductDetailInterface.parsedData.locale;
-    productDetail.image = createProductDetailInterface.parsedData.image;
+    productDetail.asin = productDetailInterface.parsedData.asin;
+    productDetail.name = productDetailInterface.parsedData.title;
+    productDetail.country = productDetailInterface.parsedData.locale;
+    productDetail.image = productDetailInterface.parsedData.image;
     productDetail.enabled = true;
-    productDetail.psc = createProductDetailInterface.psc;
-    productDetail.seller_id = createProductDetailInterface.seller_id;
-    productDetail.price = createProductDetailInterface.parsedData.price;
-    productDetail.lowest_price = createProductDetailInterface.parsedData.price;
-    productDetail.current_price = createProductDetailInterface.parsedData.price;
-    productDetail.product = createProductDetailInterface.product;
+    productDetail.psc = productDetailInterface.psc;
+    productDetail.seller = productDetailInterface.parsedData.seller;
+    productDetail.seller_id = productDetailInterface.seller_id;
+    productDetail.price = productDetailInterface.parsedData.price;
+    productDetail.lowest_price = productDetailInterface.parsedData.price;
+    productDetail.current_price = productDetailInterface.parsedData.price;
+    productDetail.product = productDetailInterface.product;
 
     await productDetail.save();
 
@@ -32,11 +25,12 @@ export class ProductDetailController {
     return productDetail;
   }
 
-  static updateProductDetail = async (productDetail: ProductDetail, productDetailInterface: ProductDetailInterface) => {
+  static updateProductDetail = async (productDetail: ProductDetail, productDetailInterface: ProductDetailParseResultInterface) => {
     productDetail.asin = productDetailInterface.parsedData.asin;
     productDetail.name = productDetailInterface.parsedData.title;
     productDetail.country = productDetailInterface.parsedData.locale;
     productDetail.image = productDetailInterface.parsedData.image;
+    productDetail.seller = productDetailInterface.parsedData.seller;
     productDetail.enabled = true;
 
     if (typeof productDetailInterface.psc !== 'undefined') {

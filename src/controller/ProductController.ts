@@ -2,8 +2,9 @@ import { getRepository } from 'typeorm';
 import { URL } from 'url';
 import productParser from '../components/product/productParser';
 import { Product } from '../entity/Product';
-import { ProductDetailController, ProductDetailInterface } from './ProductDetailController';
-
+import { CreateProductFromUrlResultInterface } from '../interfaces/CreateProductFromUrlResultInterface';
+import { ProductDetailParseResultInterface } from '../interfaces/ProductDetailParseResultInterface';
+import { ProductDetailController } from './ProductDetailController';
 export class ProductController {
 
   static findByAsin(asin: string): Promise<Product | undefined> {
@@ -27,15 +28,11 @@ export class ProductController {
     return product;
   }
 
-  static createProductFromUrl = async (url: string) => {
+  static createProductFromUrl = async (url: string) : Promise<CreateProductFromUrlResultInterface | undefined> => {
     const urlParameters = (new URL(url)).searchParams;
     const parsedProductData = await productParser(url);
     const seller_id = urlParameters.has('smid') ? urlParameters.get('smid') ?? '' : undefined;
     const psc = urlParameters.has('psc') ? Number(urlParameters.get('psc')) : undefined;
-
-    console.log('createProductFromUrl', {
-      parsedProductData
-    });
 
     if (!parsedProductData) {
       console.log('Couldn\'t create product from url as the url couldn\'t be parsed.');
@@ -44,40 +41,40 @@ export class ProductController {
 
     const existingProduct = await this.findByAsin(parsedProductData.asin);
     if (existingProduct) {
-      console.log('Product already exists. Updating the current product.', existingProduct);
       if (!existingProduct.tracking_countries.includes(parsedProductData.locale)) {
         existingProduct.tracking_countries.push(parsedProductData.locale);
         existingProduct.save();
       }
 
       const existingProductDetail = existingProduct.productDetails?.find(productDetail => productDetail.country === parsedProductData.locale);
-      const productDetail: ProductDetailInterface = {
+      const productDetailToCreate: ProductDetailParseResultInterface = {
         product: existingProduct,
         parsedData: parsedProductData,
         psc,
         seller_id
       };
 
-      if (!existingProductDetail) {
-        console.log('Creating product details for locale: ' + productDetail.parsedData.locale);
-        await ProductDetailController.createProductDetail(productDetail);
-      } else {
-        console.log('Updating existing product details for locale: ' + productDetail.parsedData.locale);
-        await ProductDetailController.updateProductDetail(existingProductDetail, productDetail);
+      const result: CreateProductFromUrlResultInterface = {
+        productDetail: !existingProductDetail ? await ProductDetailController.createProductDetail(productDetailToCreate) : await ProductDetailController.updateProductDetail(existingProductDetail, productDetailToCreate),
+        existing_product_detail: !! existingProductDetail
       }
 
-      return;
+      return result;
     }
 
     const product = await this.createProduct(parsedProductData.asin, parsedProductData.locale);
-    const productDetail: ProductDetailInterface = {
+    const productDetailToCreate: ProductDetailParseResultInterface = {
       product,
       parsedData: parsedProductData,
       psc,
       seller_id
     };
-    await ProductDetailController.createProductDetail(productDetail);
 
-    // TODO: Discord related actions?
+    const result: CreateProductFromUrlResultInterface = {
+      productDetail: await ProductDetailController.createProductDetail(productDetailToCreate),
+      existing_product_detail: false
+    }
+
+    return result;
   }
 }

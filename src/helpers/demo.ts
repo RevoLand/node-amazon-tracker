@@ -13,5 +13,5 @@ export const createDemoProductData = async (): Promise<void> => {
     await ProductController.createProductFromUrl(productUrl);
   }
 
-  console.log('Demo Product Data created.');
+  console.log('Demo Product Data has been created.');
 }

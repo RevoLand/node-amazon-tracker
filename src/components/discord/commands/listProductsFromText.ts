@@ -1,8 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
-import parseProductUrls from '../../product/productUrlHelper';
-
+import { parseProductUrls } from '../../product/productUrlHelper';
 
 const listProductsFromTextCommand: DiscordCommandInterface = {
   data: new SlashCommandBuilder()
@@ -11,10 +10,9 @@ const listProductsFromTextCommand: DiscordCommandInterface = {
     .addStringOption(option => option.setName('message').setDescription('Message to parse product urls from').setRequired(true)),
   execute: async (interaction: CommandInteraction) => {
     const message = interaction.options.getString('message') ?? '';
-    const productUrls = parseProductUrls(message);
-
+    const productUrls = parseProductUrls(message).join('\n');
     await interaction.reply({
-      content: productUrls.join('\n'),
+      content: `\`\`\`${productUrls}\`\`\``,
       ephemeral: true
     })
   }

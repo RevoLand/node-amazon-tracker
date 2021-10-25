@@ -31,18 +31,22 @@ const getParsedProductData = ($: CheerioAPI): ProductParser | undefined => {
     const abroad = $('#globalStoreBadgePopoverInsideBuybox_feature_div').text()?.length > 0;
     const shippingFee = $('#mir-layout-DELIVERY_BLOCK-slot-DELIVERY_MESSAGE a').text();
 
-    const priceText = ($('#booksHeaderSection #price').text() || $('#priceInsideBuyBox_feature_div #price_inside_buybox').text()).replace(/[^0-9,.]/g, '').replace(/\./g, '').replace(',', '.');
+    let priceText = ($('#booksHeaderSection #price').text() || $('#priceInsideBuyBox_feature_div #price_inside_buybox').text() || $('#corePrice_desktop .a-price .a-offscreen').text()).replace(/[^0-9,.]/g, '');
+    if (['.com.tr', '.es', '.fr', '.it'].includes(locale)) {
+      priceText = priceText.replace(/\./g, '').replace(',', '.');
+    }
     const price = priceText.length > 0 ? parseFloat(priceText) : undefined;
 
     const stockText = $('#availability_feature_div > #availability').text() || $('form#addToCart #availability').text();
     const stock = (stockText?.replace(/[^0-9]/g, '')) ? Number(stockText.replace(/[^0-9]/g, '')) : undefined;
-    const seller = trimNewLines($('#merchant-info span').first().text());
+    const sellerText = $('#merchant-info span');
+    const seller = trimNewLines(sellerText.first().text() || sellerText.text());
 
     const product: ProductParser = {
       title,
       asin,
       image,
-      locale,
+      locale: locale === '.us' ? '.com' : locale,
       primeOnly,
       abroad,
       shippingFee,
@@ -73,8 +77,12 @@ const productParser = async (url: string): Promise<ProductParser | undefined> =>
     // Navigate to product url
     await page.goto(url);
 
-    // Accept cookies!
-    await page.click('#sp-cc-accept');
+    const cookies = (await page.$('#sp-cc-accept')) || '';
+
+    if (cookies) {
+      // Accept cookies!
+      await page.click('#sp-cc-accept');
+    }
 
     // Get page content and replace newlines
     const content = (await page.content()).replace(/\n\s*\n/gm, '');

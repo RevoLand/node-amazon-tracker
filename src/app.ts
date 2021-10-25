@@ -7,7 +7,6 @@ import { connectToDiscord } from './helpers/discord';
 const main = async () => {
   await connectToSql();
   await connectToDiscord();
-
   // await createDemoProductData();
 
   // const products = await ProductController.getAll();

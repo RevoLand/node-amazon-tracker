@@ -91,7 +91,7 @@ export class ProductDetail extends BaseEntity {
     getUrl = () => {
       // Amazon tr seller id: A1UNQM1SR2CHM
       const queryParameters = new URLSearchParams();
-      let productUrl = `https://www.amazon.com.tr/gp/product/${this.asin}/`;
+      let productUrl = `https://www.amazon${this.country}/gp/product/${this.asin}/`;
 
       if (this.seller_id) {
         queryParameters.append('smid', this.seller_id);
