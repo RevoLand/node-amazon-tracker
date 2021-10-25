@@ -2,6 +2,7 @@
 import { Client, Intents } from 'discord.js';
 import { exit } from 'process';
 import { readDiscordCommands, registerDiscordCommands } from '../components/discord/discordCommands';
+import discordReadyEvent from '../components/discord/events/discordReadyEvent';
 import discordConfig from '../config/discord';
 import { ExitCodes } from './enum';
 
@@ -19,10 +20,7 @@ export const connectToDiscord = async (): Promise<Client> => {
   await registerDiscordCommands(commands.map(command => command.data.toJSON()));
 
   try {
-    client.once('ready', () => {
-      // TODO: Start tracking
-      console.log('Discord is ready!');
-    });
+    client.once('ready', () => discordReadyEvent(client));
 
     client.on('interactionCreate', async interaction => {
       if (!interaction.isCommand()) {
