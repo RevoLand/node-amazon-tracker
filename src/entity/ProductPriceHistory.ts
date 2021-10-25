@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, JoinColumn, CreateDateColumn, ManyToOne } from 'typeorm';
 import { ProductDetail } from './ProductDetail';
 
 @Entity('product_price_histories')
@@ -6,14 +6,7 @@ export class ProductPriceHistory extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToOne(() => ProductDetail, {
-      onDelete: 'CASCADE',
-      onUpdate: 'NO ACTION'
-    })
-    @JoinColumn({
-      name: 'product_detail_id',
-      referencedColumnName: 'id'
-    })
+    @Column()
     product_detail_id: number;
 
     @Column('decimal', {
@@ -30,4 +23,14 @@ export class ProductPriceHistory extends BaseEntity {
 
     @CreateDateColumn()
     created_at: Date;
+
+    @ManyToOne(() => ProductDetail, productDetail => productDetail.priceHistories, {
+      onDelete: 'CASCADE',
+      onUpdate: 'NO ACTION',
+    })
+    @JoinColumn({
+      name: 'product_detail_id',
+      referencedColumnName: 'id'
+    })
+    productDetail: ProductDetail;
 }

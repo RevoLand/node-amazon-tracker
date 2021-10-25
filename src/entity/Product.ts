@@ -25,4 +25,17 @@ export class Product extends BaseEntity {
       onUpdate: 'NO ACTION'
     })
     productDetails: ProductDetail[]
+
+    constructor(asin?: string, locale?: string) {
+      super();
+
+      if (typeof asin !== 'undefined') {
+        this.asin = asin;
+      }
+
+      if (typeof locale !== 'undefined') {
+        this.tracking_countries = [locale];
+      }
+
+    }
 }

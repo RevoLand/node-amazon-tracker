@@ -36,7 +36,7 @@ const getParsedProductData = ($: CheerioAPI): ProductParser | undefined => {
 
     const stockText = $('#availability_feature_div > #availability').text() || $('form#addToCart #availability').text();
     const stock = (stockText?.replace(/[^0-9]/g, '')) ? Number(stockText.replace(/[^0-9]/g, '')) : undefined;
-    const seller = trimNewLines($('#merchant-info > span').text());
+    const seller = trimNewLines($('#merchant-info span').first().text());
 
     const product: ProductParser = {
       title,

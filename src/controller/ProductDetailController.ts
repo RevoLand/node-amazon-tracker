@@ -38,8 +38,14 @@ export class ProductDetailController {
     productDetail.country = productDetailInterface.parsedData.locale;
     productDetail.image = productDetailInterface.parsedData.image;
     productDetail.enabled = true;
-    productDetail.psc = productDetailInterface.psc;
-    productDetail.seller_id = productDetailInterface.seller_id;
+
+    if (typeof productDetailInterface.psc !== 'undefined') {
+      productDetail.psc = productDetailInterface.psc;
+    }
+
+    if (typeof productDetailInterface.seller_id !== 'undefined') {
+      productDetail.seller_id = productDetailInterface.seller_id;
+    }
 
     if (typeof productDetail.lowest_price === 'undefined' || (typeof productDetailInterface.parsedData.price !== 'undefined' && productDetailInterface.parsedData.price < productDetail.lowest_price)) {
       productDetail.lowest_price = productDetailInterface.parsedData.price;
@@ -61,5 +67,19 @@ export class ProductDetailController {
     // TODO: Discord related actions?
 
     return productDetail;
+  }
+
+  static deleteProductTracking = async (productDetail: ProductDetail) => {
+    try {
+      await productDetail.remove();
+
+      // TODO: Discord related actions?
+
+      return true;
+    } catch (error) {
+      console.error('An error happened while deleting product tracking from database.', error);
+
+      return false;
+    }
   }
 }

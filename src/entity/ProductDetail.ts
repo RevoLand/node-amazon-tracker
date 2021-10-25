@@ -1,6 +1,7 @@
-import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { URLSearchParams } from 'url';
 import { Product } from './Product';
+import { ProductPriceHistory } from './ProductPriceHistory';
 
 @Entity('product_details')
 export class ProductDetail extends BaseEntity {
@@ -80,6 +81,12 @@ export class ProductDetail extends BaseEntity {
       referencedColumnName: 'asin'
     })
     product: Product;
+
+    @OneToMany(() => ProductPriceHistory, priceHistory => priceHistory.productDetail, {
+      onDelete: 'CASCADE',
+      onUpdate: 'NO ACTION'
+    })
+    priceHistories: ProductPriceHistory[];
 
     getUrl = () => {
       // Amazon tr seller id: A1UNQM1SR2CHM

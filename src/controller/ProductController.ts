@@ -5,9 +5,6 @@ import { Product } from '../entity/Product';
 import { ProductDetailController, ProductDetailInterface } from './ProductDetailController';
 
 export class ProductController {
-  static getAll = () => getRepository(Product).find({
-    relations: ['productDetails']
-  });
 
   static findByAsin(asin: string): Promise<Product | undefined> {
     return getRepository(Product).findOne({
@@ -18,11 +15,12 @@ export class ProductController {
     });
   }
 
-  static createProduct = async (asin: string, locale: string): Promise<Product> => {
-    const product = new Product;
+  static getAll = () => getRepository(Product).find({
+    relations: ['productDetails']
+  });
 
-    product.asin = asin;
-    product.tracking_countries = [locale];
+  static createProduct = async (asin: string, locale: string): Promise<Product> => {
+    const product = new Product(asin, locale);
 
     await product.save();
 
@@ -52,7 +50,7 @@ export class ProductController {
         existingProduct.save();
       }
 
-      const existingProductDetails = existingProduct.productDetails?.find(productDetail => productDetail.country === parsedProductData.locale);
+      const existingProductDetail = existingProduct.productDetails?.find(productDetail => productDetail.country === parsedProductData.locale);
       const productDetail: ProductDetailInterface = {
         product: existingProduct,
         parsedData: parsedProductData,
@@ -60,12 +58,12 @@ export class ProductController {
         seller_id
       };
 
-      if (!existingProductDetails) {
+      if (!existingProductDetail) {
         console.log('Creating product details for locale: ' + productDetail.parsedData.locale);
         await ProductDetailController.createProductDetail(productDetail);
       } else {
         console.log('Updating existing product details for locale: ' + productDetail.parsedData.locale);
-        await ProductDetailController.updateProductDetail(existingProductDetails, productDetail);
+        await ProductDetailController.updateProductDetail(existingProductDetail, productDetail);
       }
 
       return;
