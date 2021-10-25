@@ -49,9 +49,10 @@ export class ProductController {
     const existingProduct = await this.findByAsin(parsedProductData.asin);
     if (existingProduct) {
       console.log('Product already exists. Updating the current product.', existingProduct);
-      existingProduct.tracking_countries = [...new Set([...existingProduct.tracking_countries, parsedProductData.locale])];
-      // TODO: Create/Update related product detail for the given locale
-      existingProduct.save();
+      if (!existingProduct.tracking_countries.includes(parsedProductData.locale)) {
+        existingProduct.tracking_countries.push(parsedProductData.locale);
+        existingProduct.save();
+      }
 
       const existingProductDetails = existingProduct.productDetails?.find(productDetail => productDetail.country === parsedProductData.locale);
       const productDetail: ProductDetailInterface = {
@@ -62,7 +63,11 @@ export class ProductController {
       };
 
       if (!existingProductDetails) {
+        console.log('Creating product details for locale: ' + productDetail.parsedData.locale);
         await ProductDetailController.createProductDetail(productDetail);
+      } else {
+        console.log('Updating existing product details for locale: ' + productDetail.parsedData.locale);
+        await ProductDetailController.updateProductDetail(existingProductDetails, productDetail);
       }
 
       return;

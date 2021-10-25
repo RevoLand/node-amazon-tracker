@@ -29,4 +29,23 @@ export class ProductDetailController {
 
     return productDetail;
   }
+
+  static updateProductDetail = async (productDetail: ProductDetail, productDetailInterface: ProductDetailInterface) => {
+    productDetail.asin = productDetailInterface.parsedData.asin;
+    productDetail.name = productDetailInterface.parsedData.title;
+    productDetail.country = productDetailInterface.parsedData.locale;
+    productDetail.image = productDetailInterface.parsedData.image;
+    productDetail.enabled = true;
+    productDetail.psc = productDetailInterface.psc;
+    productDetail.seller_id = productDetailInterface.seller_id;
+
+    if (typeof productDetail.lowest_price === 'undefined' || (typeof productDetailInterface.parsedData.price !== 'undefined' && productDetailInterface.parsedData.price < productDetail.lowest_price)) {
+      productDetail.lowest_price = productDetailInterface.parsedData.price;
+    }
+
+    productDetail.current_price = productDetailInterface.parsedData.price;
+    await productDetail.save();
+
+    return productDetail;
+  };
 }
