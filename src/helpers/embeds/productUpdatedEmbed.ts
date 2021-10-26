@@ -1,27 +1,26 @@
 import { MessageEmbed } from 'discord.js';
 import { Product } from '../../entity/Product';
 
-const productUpdated = (productDetail: Product): MessageEmbed => {
-  const productEmbed = new MessageEmbed()
+const productUpdated = (product: Product): MessageEmbed => {
+  const embed = new MessageEmbed()
+    .setTitle(product.name ?? '')
     .setDescription('Ürün zaten takip ediliyor.')
-    .setTitle(productDetail.name ?? '')
-    .setURL(productDetail.getUrl())
-    .addField('Güncel Fiyat', '' + productDetail.current_price, true)
-    .addField('En Düşük Fiyat', '' + productDetail.lowest_price, true)
-    .addField('Takibe Başlandığı Fiyat', '' + productDetail.price, true)
-    .setFooter('Ülke: ' + productDetail.country)
-    .setTimestamp(productDetail.updated_at);
+    .setURL(product.getUrl())
+    .addField('Güncel Fiyat', '' + product.current_price, true)
+    .addField('En Düşük Fiyat', '' + product.lowest_price, true)
+    .addField('Takibe Başlandığı Fiyat', '' + product.price, true)
+    .setAuthor(product.country)
+    .setTimestamp(product.updated_at);
 
-  if (productDetail.image) {
-    productEmbed.setThumbnail(productDetail.image);
+  if (product.image) {
+    embed.setThumbnail(product.image);
   }
 
-  if (productDetail.seller) {
-    productEmbed.setAuthor(productDetail.seller);
+  if (product.seller) {
+    embed.setFooter('Satıcı: ' + product.seller);
   }
 
-
-  return productEmbed;
+  return embed;
 }
 
 export default productUpdated;

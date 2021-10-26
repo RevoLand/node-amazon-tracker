@@ -1,25 +1,24 @@
 import { MessageEmbed } from 'discord.js';
 import { Product } from '../../entity/Product';
 
-const productCreatedEmbed = (productDetail: Product): MessageEmbed => {
-  const productEmbed = new MessageEmbed()
+const productCreatedEmbed = (product: Product): MessageEmbed => {
+  const embed = new MessageEmbed()
     .setDescription('Ürün takibe alındı.')
-    .setTitle(productDetail.name ?? '')
-    .setURL(productDetail.getUrl())
-    .addField('Güncel Fiyat', '' + productDetail.current_price)
-    .setFooter('Ülke: ' + productDetail.country)
-    .setTimestamp(productDetail.updated_at);
+    .setTitle(product.name ?? '')
+    .setURL(product.getUrl())
+    .addField('Güncel Fiyat', '' + product.current_price)
+    .setAuthor(product.country)
+    .setTimestamp(product.updated_at);
 
-  if (productDetail.image) {
-    productEmbed.setThumbnail(productDetail.image);
+  if (product.image) {
+    embed.setThumbnail(product.image);
   }
 
-  if (productDetail.seller) {
-    productEmbed.setAuthor(productDetail.seller);
+  if (product.seller) {
+    embed.setFooter('Satıcı: ' + product.seller);
   }
 
-
-  return productEmbed;
+  return embed;
 }
 
 export default productCreatedEmbed;
