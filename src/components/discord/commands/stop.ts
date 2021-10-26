@@ -41,6 +41,8 @@ const productCommand: DiscordCommandInterface = {
           });
         }
 
+        await ProductController.disableProductTracking(product);
+
         await interaction.channel?.send({
           embeds: [productTrackingStoppedEmbed(product)]
         })
