@@ -4,7 +4,7 @@ import { Routes } from 'discord-api-types/v9';
 import { readdirSync } from 'fs';
 import { exit } from 'process';
 import discordConfig from '../../config/discord';
-import { ExitCodes } from '../../helpers/enum';
+import { ExitCodes } from '../../helpers/enums';
 import { DiscordCommandInterface } from '../../interfaces/DiscordCommandInterface';
 import { resolve } from 'path';
 

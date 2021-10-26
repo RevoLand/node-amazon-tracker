@@ -1,7 +1,7 @@
 import { exit } from 'process';
 import { Connection, createConnection } from 'typeorm';
 import database from '../config/database';
-import { ExitCodes } from './enum';
+import { ExitCodes } from './enums';
 
 export const connectToSql = async (): Promise<Connection | undefined> => {
   try {

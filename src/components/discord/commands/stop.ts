@@ -1,16 +1,16 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { exit } from 'process';
-import { ProductController } from '../../../controller/ProductController';
 import { ExitCodes } from '../../../helpers/enums';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
-import productEmbed from '../../../helpers/embeds/productEmbed';
 import { parseProductUrlsWithTlds } from '../../../helpers/productUrlHelper';
+import { ProductController } from '../../../controller/ProductController';
+import productTrackingStoppedEmbed from '../../../helpers/embeds/productTrackingStoppedEmbed';
 
 const productCommand: DiscordCommandInterface = {
   data: new SlashCommandBuilder()
-    .setName('product')
-    .setDescription('Parses the product url\'s from text and lists to the user.')
+    .setName('stop')
+    .setDescription('Parses the product url\'s from text and stops the tracking.')
     .addStringOption(option => option.setName('products').setDescription('Message to parse product urls from').setRequired(true)),
   execute: async (interaction: CommandInteraction) => {
     const products = parseProductUrlsWithTlds(interaction.options.getString('products', true));
@@ -34,21 +34,21 @@ const productCommand: DiscordCommandInterface = {
             ephemeral: true
           });
           continue;
-        } else if (!interaction.replied) {
+        } else if (!interaction.replied && product.enabled) {
           await interaction.reply({
-            content: 'Ürün bulundu, sonuçlar getiriliyor...',
+            content: 'Ürün bulundu, takipten çıkartılıyor...',
             ephemeral: true
           });
         }
 
         await interaction.channel?.send({
-          embeds: [productEmbed(product)]
+          embeds: [productTrackingStoppedEmbed(product)]
         })
       }
     } catch (error) {
-      console.error('An error happened while executing the track command function', error);
+      console.error('An error happened while executing the stop command function.', error);
 
-      exit(ExitCodes.ProductCommandFailed);
+      exit(ExitCodes.StopCommandFailed);
     }
   }
 }

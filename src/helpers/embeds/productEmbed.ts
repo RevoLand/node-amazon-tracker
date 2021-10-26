@@ -1,8 +1,8 @@
 import { MessageEmbed } from 'discord.js';
-import { ProductDetail } from '../../entity/ProductDetail';
+import { Product } from '../../entity/Product';
 
-const product = (productDetail: ProductDetail): MessageEmbed => {
-  const productEmbed = new MessageEmbed()
+const productEmbed = (productDetail: Product): MessageEmbed => {
+  const embed = new MessageEmbed()
     .setTitle(productDetail.name ?? '')
     .setURL(productDetail.getUrl())
     .addField('Güncel Fiyat', '' + productDetail.current_price, true)
@@ -12,14 +12,14 @@ const product = (productDetail: ProductDetail): MessageEmbed => {
     .setTimestamp(productDetail.updated_at);
 
   if (productDetail.image) {
-    productEmbed.setThumbnail(productDetail.image);
+    embed.setThumbnail(productDetail.image);
   }
 
   if (productDetail.seller) {
-    productEmbed.setAuthor(productDetail.seller);
+    embed.setAuthor(productDetail.seller);
   }
 
-  return productEmbed;
+  return embed;
 }
 
-export default product;
+export default productEmbed;

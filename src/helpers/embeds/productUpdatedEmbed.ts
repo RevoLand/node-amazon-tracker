@@ -1,12 +1,14 @@
 import { MessageEmbed } from 'discord.js';
-import { ProductDetail } from '../../entity/ProductDetail';
+import { Product } from '../../entity/Product';
 
-const productCreated = (productDetail: ProductDetail): MessageEmbed => {
+const productUpdated = (productDetail: Product): MessageEmbed => {
   const productEmbed = new MessageEmbed()
-    .setDescription('Ürün takibe alındı.')
+    .setDescription('Ürün zaten takip ediliyor.')
     .setTitle(productDetail.name ?? '')
     .setURL(productDetail.getUrl())
-    .addField('Güncel Fiyat', '' + productDetail.current_price)
+    .addField('Güncel Fiyat', '' + productDetail.current_price, true)
+    .addField('En Düşük Fiyat', '' + productDetail.lowest_price, true)
+    .addField('Takibe Başlandığı Fiyat', '' + productDetail.price, true)
     .setFooter('Ülke: ' + productDetail.country)
     .setTimestamp(productDetail.updated_at);
 
@@ -22,4 +24,4 @@ const productCreated = (productDetail: ProductDetail): MessageEmbed => {
   return productEmbed;
 }
 
-export default productCreated;
+export default productUpdated;

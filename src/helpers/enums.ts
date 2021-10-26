@@ -7,4 +7,5 @@ export enum ExitCodes {
   RegisteringDiscordCommandsFailed = 5,
   TrackCommandFailed = 6,
   ProductCommandFailed = 7,
+  StopCommandFailed = 8,
 }

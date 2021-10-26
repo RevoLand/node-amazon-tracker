@@ -2,11 +2,11 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { exit } from 'process';
 import { ProductController } from '../../../controller/ProductController';
-import productCreated from '../../../helpers/embeds/productCreated';
-import productUpdated from '../../../helpers/embeds/productUpdated';
-import { ExitCodes } from '../../../helpers/enum';
+import productCreatedEmbed from '../../../helpers/embeds/productCreatedEmbed';
+import productUpdated from '../../../helpers/embeds/productUpdatedEmbed';
+import { ExitCodes } from '../../../helpers/enums';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
-import { parseProductUrls } from '../../product/productUrlHelper';
+import { parseProductUrls } from '../../../helpers/productUrlHelper';
 
 const trackCommand: DiscordCommandInterface = {
   data: new SlashCommandBuilder()
@@ -14,11 +14,13 @@ const trackCommand: DiscordCommandInterface = {
     .setDescription('Parses the product url\'s from text and lists to the user.')
     .addStringOption(option => option.setName('products').setDescription('Message to parse product urls from').setRequired(true)),
   execute: async (interaction: CommandInteraction) => {
-    const products = interaction.options.getString('products', true);
-    const productUrls = parseProductUrls(products);
+    const productUrls = parseProductUrls(interaction.options.getString('products', true));
 
     if (productUrls.length === 0) {
-      await interaction.reply('Girilen mesaj takibe uygun ürün içermiyor 😢');
+      await interaction.reply({
+        content: 'Girilen mesaj takibe uygun ürün içermiyor 😢',
+        ephemeral: true
+      });
 
       return;
     }
@@ -36,13 +38,15 @@ const trackCommand: DiscordCommandInterface = {
           continue;
         }
 
-        const productEmbed = createProductResult.existing_product_detail ? productUpdated(createProductResult.productDetail) : productCreated(createProductResult.productDetail);
+        const productEmbed = createProductResult.existing_product_detail ?
+          productUpdated(createProductResult.productDetail) :
+          productCreatedEmbed(createProductResult.productDetail);
         await interaction.channel?.send({
           embeds: [productEmbed]
         })
       }
     } catch (error) {
-      console.error('An error happened related to trackCommand.', error);
+      console.error('An error happened while executing the track command function.', error);
 
       exit(ExitCodes.TrackCommandFailed);
     }

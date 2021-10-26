@@ -4,7 +4,7 @@ import { exit } from 'process';
 import { readDiscordCommands, registerDiscordCommands } from '../components/discord/discordCommands';
 import discordReadyEvent from '../components/discord/events/discordReadyEvent';
 import discordConfig from '../config/discord';
-import { ExitCodes } from './enum';
+import { ExitCodes } from './enums';
 
 export const connectToDiscord = async (): Promise<Client> => {
   if (!discordConfig.bot_token) {

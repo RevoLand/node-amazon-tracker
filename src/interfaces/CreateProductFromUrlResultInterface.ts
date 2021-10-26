@@ -1,6 +1,6 @@
-import { ProductDetail } from '../entity/ProductDetail';
+import { Product } from '../entity/Product';
 
 export interface CreateProductFromUrlResultInterface {
-  productDetail: ProductDetail,
+  productDetail: Product,
   existing_product_detail: boolean
 }

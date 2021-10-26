@@ -1,5 +1,5 @@
 import { BaseEntity, Entity, Column, PrimaryGeneratedColumn, JoinColumn, CreateDateColumn, ManyToOne } from 'typeorm';
-import { ProductDetail } from './ProductDetail';
+import { Product } from './Product';
 
 @Entity('product_price_histories')
 export class ProductPriceHistory extends BaseEntity {
@@ -24,7 +24,7 @@ export class ProductPriceHistory extends BaseEntity {
     @CreateDateColumn()
     created_at: Date;
 
-    @ManyToOne(() => ProductDetail, productDetail => productDetail.priceHistories, {
+    @ManyToOne(() => Product, product => product.priceHistories, {
       onDelete: 'CASCADE',
       onUpdate: 'NO ACTION',
     })
@@ -32,5 +32,5 @@ export class ProductPriceHistory extends BaseEntity {
       name: 'product_detail_id',
       referencedColumnName: 'id'
     })
-    productDetail: ProductDetail;
+    product: Product;
 }

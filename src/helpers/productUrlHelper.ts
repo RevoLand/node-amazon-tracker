@@ -1,6 +1,8 @@
 import getUrls from 'get-urls';
 import { URL } from 'url';
-import countries from '../../config/countries';
+import countries from '../config/countries';
+
+export const getTldFromUrl = (urlToParse: string) => new URL(urlToParse).hostname.replace('www.', '').replace('amazon', '');
 
 export const parseProductUrls = (text: string) => {
   let urls = Array.from<string>(getUrls(text, {
@@ -17,7 +19,7 @@ export const parseProductUrls = (text: string) => {
       return false;
     }
 
-    const tld = _url.hostname.replace('www.', '').replace('amazon', '');
+    const tld = getTldFromUrl(url);
 
     if (!countries.allowed_countries.includes(tld)) {
       return false;
@@ -44,4 +46,13 @@ export const parseAsinFromUrl = (urlToParse: string): string => {
   console.error('ASIN parse edilemedi?', { splittedPathname });
 
   return '';
+}
+
+export const parseProductUrlsWithTlds = (message: string) => {
+  return parseProductUrls(message).map(productUrl => {
+    return {
+      asin: parseAsinFromUrl(productUrl),
+      locale: getTldFromUrl(productUrl)
+    };
+  });
 }
