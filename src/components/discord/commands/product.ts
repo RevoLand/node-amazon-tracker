@@ -2,10 +2,10 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { exit } from 'process';
 import { ProductController } from '../../../controller/ProductController';
-import { generateProductEmbedFromDetail } from '../../../helpers/discord';
 import { ExitCodes } from '../../../helpers/enum';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
 import { parseAsinFromUrl, parseProductUrls } from '../../product/productUrlHelper';
+import productEmbed from '../../../helpers/embeds/product';
 
 const productCommand: DiscordCommandInterface = {
   data: new SlashCommandBuilder()
@@ -22,21 +22,19 @@ const productCommand: DiscordCommandInterface = {
       return;
     }
 
-
     try {
-      await interaction.reply('Ürün bulundu, sonuçlar getiriliyor...');
-
       for (const productAsin of productAsins) {
-        console.log('Product asin', productAsin);
-
         const product = await ProductController.findByAsin(productAsin);
         if (!product) {
           // TODO: /product komutundan gelen url'lerde, ürün yoksa takip için eklenmeli mi?
+          await interaction.reply('Ürün karşılığı bulunamadı.');
           continue;
+        } else if (!interaction.replied) {
+          await interaction.reply('Ürün bulundu, sonuçlar getiriliyor...');
         }
 
         await interaction.channel?.send({
-          embeds: product.productDetails.map(productDetail => generateProductEmbedFromDetail(productDetail))
+          embeds: product.productDetails.map(productDetail => productEmbed(productDetail))
         })
       }
     } catch (error) {

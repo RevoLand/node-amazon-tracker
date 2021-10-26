@@ -5,6 +5,8 @@ import { ExitCodes } from './enum';
 
 export const connectToSql = async (): Promise<Connection | undefined> => {
   try {
+    console.log('Connecting to SQL.');
+
     const sqlConnection = await createConnection({
       type: 'mysql',
       host: database.hostname,

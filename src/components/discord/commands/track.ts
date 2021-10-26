@@ -2,7 +2,8 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { exit } from 'process';
 import { ProductController } from '../../../controller/ProductController';
-import { generateProductEmbedFromTrackResult } from '../../../helpers/discord';
+import productCreated from '../../../helpers/embeds/productCreated';
+import productUpdated from '../../../helpers/embeds/productUpdated';
 import { ExitCodes } from '../../../helpers/enum';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
 import { parseProductUrls } from '../../product/productUrlHelper';
@@ -35,7 +36,7 @@ const trackCommand: DiscordCommandInterface = {
           continue;
         }
 
-        const productEmbed = generateProductEmbedFromTrackResult(createProductResult);
+        const productEmbed = createProductResult.existing_product_detail ? productUpdated(createProductResult.productDetail) : productCreated(createProductResult.productDetail);
         await interaction.channel?.send({
           embeds: [productEmbed]
         })
