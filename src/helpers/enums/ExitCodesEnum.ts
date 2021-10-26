@@ -1,4 +1,4 @@
-export enum ExitCodes {
+export enum ExitCodesEnum {
   Success = 0,
   SQLConfigNotSet = 1,
   SQLConnectionFailed = 2,
@@ -8,4 +8,6 @@ export enum ExitCodes {
   TrackCommandFailed = 6,
   ProductCommandFailed = 7,
   StopCommandFailed = 8,
+  CouldntInsertDefaultSettings = 9,
+  SettingsCommandFailed = 10,
 }

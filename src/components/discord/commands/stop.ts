@@ -1,10 +1,10 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { exit } from 'process';
-import { ExitCodes } from '../../../helpers/enums';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
 import { parseProductUrlsWithTlds } from '../../../helpers/productUrlHelper';
 import { ProductController } from '../../../controller/ProductController';
+import { ExitCodesEnum } from '../../../helpers/enums/ExitCodesEnum';
 import productTrackingStoppedEmbed from '../../../helpers/embeds/productTrackingStoppedEmbed';
 
 const productCommand: DiscordCommandInterface = {
@@ -50,7 +50,7 @@ const productCommand: DiscordCommandInterface = {
     } catch (error) {
       console.error('An error happened while executing the stop command function.', error);
 
-      exit(ExitCodes.StopCommandFailed);
+      exit(ExitCodesEnum.StopCommandFailed);
     }
   }
 }

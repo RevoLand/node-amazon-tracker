@@ -1,7 +1,7 @@
 import { exit } from 'process';
 import { Connection, createConnection } from 'typeorm';
 import database from '../config/database';
-import { ExitCodes } from './enums';
+import { ExitCodesEnum } from './enums/ExitCodesEnum';
 
 export const connectToSql = async (): Promise<Connection | undefined> => {
   try {
@@ -27,6 +27,6 @@ export const connectToSql = async (): Promise<Connection | undefined> => {
   } catch (error) {
     console.error('An error happened while connecting to SQL.', error);
 
-    exit(ExitCodes.SQLConnectionFailed);
+    exit(ExitCodesEnum.SQLConnectionFailed);
   }
 };

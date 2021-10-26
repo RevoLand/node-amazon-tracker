@@ -4,13 +4,13 @@ import { exit } from 'process';
 import { readDiscordCommands, registerDiscordCommands } from '../components/discord/discordCommands';
 import discordReadyEvent from '../components/discord/events/discordReadyEvent';
 import discordConfig from '../config/discord';
-import { ExitCodes } from './enums';
+import { ExitCodesEnum } from './enums/ExitCodesEnum';
 
 export const connectToDiscord = async (): Promise<Client> => {
   if (!discordConfig.bot_token) {
     console.error('Discord bot token is not set.');
 
-    exit(ExitCodes.DiscordBotTokenNotSet);
+    exit(ExitCodesEnum.DiscordBotTokenNotSet);
   }
 
   console.log('Preparing Discord connection.');
@@ -48,7 +48,7 @@ export const connectToDiscord = async (): Promise<Client> => {
   } catch (error) {
     console.error('An error happened while connecting to Discord.', error);
 
-    exit(ExitCodes.DiscordConnectionFailed);
+    exit(ExitCodesEnum.DiscordConnectionFailed);
   }
 
   return client;

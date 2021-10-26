@@ -4,9 +4,9 @@ import { exit } from 'process';
 import { ProductController } from '../../../controller/ProductController';
 import productCreatedEmbed from '../../../helpers/embeds/productCreatedEmbed';
 import productUpdated from '../../../helpers/embeds/productUpdatedEmbed';
-import { ExitCodes } from '../../../helpers/enums';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
 import { parseProductUrls } from '../../../helpers/productUrlHelper';
+import { ExitCodesEnum } from '../../../helpers/enums/ExitCodesEnum';
 
 const trackCommand: DiscordCommandInterface = {
   data: new SlashCommandBuilder()
@@ -48,7 +48,7 @@ const trackCommand: DiscordCommandInterface = {
     } catch (error) {
       console.error('An error happened while executing the track command function.', error);
 
-      exit(ExitCodes.TrackCommandFailed);
+      exit(ExitCodesEnum.TrackCommandFailed);
     }
   }
 }

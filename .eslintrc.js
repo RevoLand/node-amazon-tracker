@@ -38,7 +38,7 @@ module.exports = {
     'curly': 'error', // https://eslint.org/docs/rules/curly
     'no-new-wrappers': 'error', // https://eslint.org/docs/rules/no-new-wrappers
     'block-scoped-var': 'error', // https://eslint.org/docs/rules/block-scoped-var
-    'no-shadow': 'warn', // https://eslint.org/docs/rules/no-shadow
+    '@typescript-eslint/no-shadow': 'warn', // https://eslint.org/docs/rules/no-shadow
     'no-else-return': 'warn', // https://eslint.org/docs/rules/no-else-return
     'no-return-await': 'error', // https://eslint.org/docs/rules/no-return-await
     'no-self-compare': 'error', // https://eslint.org/docs/rules/no-self-compare
