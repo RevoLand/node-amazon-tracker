@@ -3,11 +3,11 @@ To-do list or stuff that are existing in the c# version of the tracker yet missi
 - [x] [Typescript](https://github.com/RevoLand/node-amazon-tracker/issues/1)
 - [x] [MySQL integration for products and price history](https://github.com/RevoLand/node-amazon-tracker/issues/2)
 - [x] [Discord integration](https://github.com/RevoLand/node-amazon-tracker/issues/3)
-  - [ ] Tracking products, stopping product tracking
-  - [ ] Tracker related settings
+  - [x] Tracking products, stopping product tracking
+  - [x] Tracker related settings
   - [ ] Notifications related to price changes
   - [ ] Captcha related notifications
-- [ ] [Support for rest of the Amazon websites (com, uk, de, es, fr, it)](https://github.com/RevoLand/node-amazon-tracker/issues/4)
+- [x] [Support for rest of the Amazon websites (com, uk, de, es, fr, it)](https://github.com/RevoLand/node-amazon-tracker/issues/4)
 - [ ] [Manual and automatic captcha resolving](https://github.com/RevoLand/node-amazon-tracker/issues/5)
 - [ ] [Tracking related optimizations](https://github.com/RevoLand/node-amazon-tracker/issues/4)
   - [ ] Navigate between pages rather than creating a new one?
