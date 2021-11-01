@@ -8,7 +8,7 @@ const productPriceChangeEmbed = (priceChange: PriceChangeInterface): MessageEmbe
     .addField('Takibe Başlandığı Fiyat', '' + priceChange.product.price, true)
     .addField('Bilinen En Düşük Fiyat', `${priceChange.product.lowest_price}`, true)
     .addField('Önceki Fiyat', `${priceChange.priceHistory.old_price}`, true)
-    .addField('Yeni Fiyat', `${priceChange.priceHistory.new_price} (-${priceChange.priceDiff})`, true)
+    .addField('Yeni Fiyat', `${priceChange.priceHistory.new_price} (${priceChange.priceDiff})`, true)
     .addField('En Düşük Fiyata Olan Fark', `${priceChange.lowestPriceDiff} (% ${priceChange.lowestPriceDiffPerc.toFixed(2)})`, true)
     .setAuthor(priceChange.product.country)
     .setTimestamp(priceChange.product.updated_at);

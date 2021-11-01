@@ -32,15 +32,16 @@ export const getParsedProductData = ($: CheerioAPI): ProductParser | undefined =
     const abroad = $('#globalStoreBadgePopoverInsideBuybox_feature_div').text()?.length > 0;
     const shippingFee = $('#mir-layout-DELIVERY_BLOCK-slot-DELIVERY_MESSAGE a').text();
 
-    let priceText = ($('#booksHeaderSection #price').text() || $('#price_inside_buybox').text() || $('#corePrice_desktop span[data-a-color=\'price\'] .a-offscreen').text()).replace(/[^0-9,.]/g, '');
+    let priceText = ($('#booksHeaderSection #price').text() || $('#price_inside_buybox').text() || $('#corePrice_desktop span[data-a-color=\'price\'] .a-offscreen').first().text()).replace(/[^0-9,.]/g, '');
     if (['.com.tr', '.es', '.fr', '.it'].includes(locale)) {
       priceText = priceText.replace(/\./g, '').replace(',', '.');
     }
-    const price = priceText.length > 0 ? parseFloat(priceText) : undefined;
+    const price = priceText.length > 0 ? parseFloat(parseFloat(priceText).toFixed(2)) : undefined;
 
     const stockText = $('#availability_feature_div > #availability').text() || $('form#addToCart #availability').text();
     const stock = (stockText?.replace(/[^0-9]/g, '')) ? Number(stockText.replace(/[^0-9]/g, '')) : undefined;
-    const sellerText = $('#merchant-info span');
+    const sellerText = $('#merchant-info span') ?? $('div[tabular-attribute-name=\'Venditore\'].tabular-buybox-text span') ?? $('div[tabular-attribute-name=\'Sold by\'].tabular-buybox-text span') ??
+     $('div[tabular-attribute-name=\'Vendu par\'].tabular-buybox-text span') ?? $('div[tabular-attribute-name=\'Vendido por\'].tabular-buybox-text span');
     const seller = trimNewLines(sellerText.first().text() || sellerText.text());
 
     const product: ProductParser = {
