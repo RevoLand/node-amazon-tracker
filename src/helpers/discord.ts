@@ -7,7 +7,7 @@ import discordConfig from '../config/discord';
 import { ExitCodesEnum } from './enums/ExitCodesEnum';
 
 export const connectToDiscord = async (): Promise<Client> => {
-  if (!discordConfig.bot_token) {
+  if (!discordConfig.botToken) {
     console.error('Discord bot token is not set.');
 
     exit(ExitCodesEnum.DiscordBotTokenNotSet);
@@ -43,7 +43,7 @@ export const connectToDiscord = async (): Promise<Client> => {
       }
     });
 
-    await client.login(discordConfig.bot_token);
+    await client.login(discordConfig.botToken);
 
   } catch (error) {
     console.error('An error happened while connecting to Discord.', error);

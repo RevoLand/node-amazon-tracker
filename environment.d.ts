@@ -9,6 +9,8 @@ declare global {
       DISCORD_BOT_TOKEN: string;
       DISCORD_CLIENT_ID: string;
       DISCORD_GUILD_ID: string;
+      DISCORD_NOTIFY_CHANNEL_ID: string;
+      DISCORD_BOTSPAM_CHANNEL_ID: string;
     }
   }
 }

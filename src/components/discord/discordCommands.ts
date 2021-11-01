@@ -30,14 +30,14 @@ export const readDiscordCommands = async (): Promise<Collection<string, DiscordC
 export const registerDiscordCommands = async (commands: object[]) => {
   // TODO
   // Initialization mechanism as this function should only be called once a new command added or when an existing command is updated.
-  const rest = new REST({ version: '9' }).setToken(discordConfig.bot_token);
+  const rest = new REST({ version: '9' }).setToken(discordConfig.botToken);
 
   console.log('Registering Discord Commands.')
 
   try {
     // TODO applicationGuildCommands yerine applicationCommands kullanılabilir.
     // https://discordjs.guide/interactions/registering-slash-commands.html#global-commands
-    await rest.put(Routes.applicationGuildCommands(discordConfig.client_id, discordConfig.guild_id), { body: commands });
+    await rest.put(Routes.applicationGuildCommands(discordConfig.clientId, discordConfig.guildId), { body: commands });
 
   } catch (error) {
     console.error('An error happened while registering Discord commands.', error);

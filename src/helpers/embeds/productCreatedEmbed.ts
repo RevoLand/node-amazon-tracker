@@ -6,9 +6,12 @@ const productCreatedEmbed = (product: Product): MessageEmbed => {
     .setDescription('Ürün takibe alındı.')
     .setTitle(product.name ?? '')
     .setURL(product.getUrl())
-    .addField('Güncel Fiyat', '' + product.current_price)
     .setAuthor(product.country)
     .setTimestamp(product.updated_at);
+
+  if (product.current_price) {
+    embed.addField('Güncel Fiyat', '' + product.current_price);
+  }
 
   if (product.image) {
     embed.setThumbnail(product.image);

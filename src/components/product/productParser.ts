@@ -1,4 +1,5 @@
 import { CheerioAPI, load } from 'cheerio';
+import { Client } from 'discord.js';
 import puppeteer from 'puppeteer';
 import { trimNewLines } from '../../helpers/common';
 
@@ -20,7 +21,7 @@ export interface ProductParser {
 }
 
 
-const getParsedProductData = ($: CheerioAPI): ProductParser | undefined => {
+export const getParsedProductData = ($: CheerioAPI): ProductParser | undefined => {
   try {
     // const htmlLang = $('html').attr('lang');
     const locale = $('.nav-logo-locale').text();
@@ -31,7 +32,7 @@ const getParsedProductData = ($: CheerioAPI): ProductParser | undefined => {
     const abroad = $('#globalStoreBadgePopoverInsideBuybox_feature_div').text()?.length > 0;
     const shippingFee = $('#mir-layout-DELIVERY_BLOCK-slot-DELIVERY_MESSAGE a').text();
 
-    let priceText = ($('#booksHeaderSection #price').text() || $('#price_inside_buybox').text() || $('#corePrice_desktop .a-price .a-offscreen').text()).replace(/[^0-9,.]/g, '');
+    let priceText = ($('#booksHeaderSection #price').text() || $('#price_inside_buybox').text() || $('#corePrice_desktop span[data-a-color=\'price\'] .a-offscreen').text()).replace(/[^0-9,.]/g, '');
     if (['.com.tr', '.es', '.fr', '.it'].includes(locale)) {
       priceText = priceText.replace(/\./g, '').replace(',', '.');
     }
@@ -97,7 +98,7 @@ const productParser = async (url: string): Promise<ProductParser | undefined> =>
 
     return product;
   } catch (error) {
-    console.log('productParser error', error);
+    console.error('productParser error', error);
   }
 }
 

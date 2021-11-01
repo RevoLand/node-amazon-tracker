@@ -7,6 +7,18 @@ import { ProductParseResultInterface } from '../interfaces/ProductParseResultInt
 
 export class ProductController {
 
+  static getAll(): Promise<Product[] | undefined> {
+    return getRepository(Product).find();
+  }
+
+  static getEnabled(): Promise<Product[] | undefined> {
+    return getRepository(Product).find({
+      where: {
+        enabled: true
+      }
+    });
+  }
+
   static findByAsin(asin: string): Promise<Product[] | undefined> {
     return getRepository(Product).find({
       where: {
