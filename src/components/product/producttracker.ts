@@ -1,4 +1,4 @@
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { Client } from 'discord.js';
 import { exit } from 'process';
 import discordConfig from '../../config/discord';
@@ -24,9 +24,9 @@ export class ProductTracker {
 
   interval: NodeJS.Timer | undefined;
 
-  latestUpdate: Dayjs | undefined;
-
   enabledProductsCount: number;
+
+  status = false;
 
   constructor(settings: Settings, discord: Client) {
     this.settings = settings;
@@ -41,6 +41,10 @@ export class ProductTracker {
 
     if (!trackingInterval) {
       exit();
+    }
+
+    if (this.status) {
+      return;
     }
 
     while (!this.discord.isReady()) {
@@ -58,17 +62,31 @@ export class ProductTracker {
 
     this.interval = setInterval(this.queueProductsForTracking.bind(this), this.trackingIntervalMinutes * 60 * 1000);
 
+    this.status = true;
+
     this.tracker();
   }
 
+  async restart() {
+    console.log('Restarting Product Tracker... ' + dayjs().toString());
+    if (this.status) {
+      await this.stop();
+    }
+
+    await this.start();
+  }
+
   async stop() {
-    if (typeof this.interval === 'undefined') {
+    console.log('Stopping Product Tracker... ' + dayjs().toString());
+
+    if (typeof this.interval === 'undefined' || !this.status) {
       return;
     }
 
     clearInterval(this.interval);
 
     this.interval = undefined;
+    this.status = false;
   }
 
   async queueProductsForTracking() {
@@ -79,19 +97,16 @@ export class ProductTracker {
     this.discord.user?.setActivity(`${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
 
     if (!productsForTracking || productsForTracking.length === 0) {
-      console.log('No products found for tracking.');
       return;
     }
 
     productsForTracking = productsForTracking.filter(product => dayjs(product.updated_at).isBefore(dayjs().subtract(this.trackingIntervalMinutes, 'm')) && !this.queue.hasProduct(product));
 
     if (productsForTracking.length === 0) {
-      console.log('No products found for tracking, matching the interval settings');
       return;
     }
 
     for (const product of productsForTracking) {
-      console.log(`Queueing product for tracking... ${product.asin}`);
       this.queue.enqueue(product);
     }
 
@@ -122,21 +137,25 @@ export class ProductTracker {
         parsedData: parsedProductData
       };
 
+      this.discord.user?.setActivity(`Ürün kaydediliyor. | ${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
+      await ProductController.upsertProductDetail(productResult);
+
       // If price is changed
       if (parsedProductData.price && product.current_price != parsedProductData.price) {
         const priceHistory = new ProductPriceHistory;
         priceHistory.old_price = product.current_price || 0;
         priceHistory.new_price = parsedProductData.price;
         priceHistory.product = product;
+        priceHistory.prime_only = !!parsedProductData.primeOnly;
         await priceHistory.save();
 
         const priceChange: PriceChangeInterface = {
           product,
           priceHistory,
-          priceDiff: priceHistory.old_price - priceHistory.new_price,
-          lowestPriceDiff: (product.lowest_price ?? 0) - priceHistory.new_price,
-          priceDiffPerc: 100 - (priceHistory.new_price / priceHistory.old_price * 100),
-          lowestPriceDiffPerc: 100 - (priceHistory.new_price / (product.lowest_price ?? 0) * 100)
+          priceDiff: +(priceHistory.old_price - priceHistory.new_price).toFixed(2),
+          lowestPriceDiff: +((product.lowest_price ?? 0) - priceHistory.new_price).toFixed(2),
+          priceDiffPerc: +(100 - (priceHistory.new_price / priceHistory.old_price * 100)).toFixed(2),
+          lowestPriceDiffPerc: +(100 - (priceHistory.new_price / (product.lowest_price ?? 0) * 100)).toFixed(2)
         }
 
         if (discordConfig.botSpamChannelId) {
@@ -178,8 +197,6 @@ export class ProductTracker {
         }
       }
 
-      this.discord.user?.setActivity(`Ürün kaydediliyor. | ${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
-      await ProductController.upsertProductDetail(productResult);
       this.discord.user?.setActivity(`${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
     }
 

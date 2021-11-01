@@ -9,9 +9,13 @@ const productPriceChangeEmbed = (priceChange: PriceChangeInterface): MessageEmbe
     .addField('Bilinen En Düşük Fiyat', `${priceChange.product.lowest_price}`, true)
     .addField('Önceki Fiyat', `${priceChange.priceHistory.old_price}`, true)
     .addField('Yeni Fiyat', `${priceChange.priceHistory.new_price} (${priceChange.priceDiff})`, true)
-    .addField('En Düşük Fiyata Olan Fark', `${priceChange.lowestPriceDiff} (% ${priceChange.lowestPriceDiffPerc.toFixed(2)})`, true)
+    .addField('En Düşük Fiyata Olan Fark', `${priceChange.lowestPriceDiff} (% ${priceChange.lowestPriceDiffPerc})`, true)
     .setAuthor(priceChange.product.country)
     .setTimestamp(priceChange.product.updated_at);
+
+  if (priceChange.priceHistory.prime_only) {
+    embed.addField('Prime Özel', 'Evet', true);
+  }
 
   if (priceChange.product.image) {
     embed.setThumbnail(priceChange.product.image);

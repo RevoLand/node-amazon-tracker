@@ -21,6 +21,11 @@ export class ProductPriceHistory extends BaseEntity {
     })
     new_price: number;
 
+    @Column('boolean', {
+      default: 0,
+    })
+    prime_only: boolean;
+
     @CreateDateColumn()
     created_at: Date;
 

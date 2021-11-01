@@ -1,34 +1,16 @@
 import { CheerioAPI, load } from 'cheerio';
 import dayjs from 'dayjs';
-import { Client } from 'discord.js';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import puppeteer from 'puppeteer';
 import { trimNewLines } from '../../helpers/common';
+import { ProductParserInterface } from '../../interfaces/ProductParserInterface';
 
-export interface ProductParser {
-  title: string,
-  asin: string,
-  image?: string,
-  locale: string,
-  primeOnly?: boolean,
-  abroad?: boolean,
-  shippingFee?: string,
-
-  price?: number,
-
-  stock?: number,
-  stockText?: string,
-  seller?: string,
-  available?: boolean
-}
-
-
-export const getParsedProductData = ($: CheerioAPI): ProductParser | undefined => {
+export const getParsedProductData = ($: CheerioAPI): ProductParserInterface | undefined => {
   try {
     // const htmlLang = $('html').attr('lang');
     const locale = $('.nav-logo-locale').text();
     const title = trimNewLines($('#title #productTitle').text());
-    const asin = '' + $('#ASIN').val();
+    const asin = $('#ASIN') ? '' + $('#ASIN').val() : '';
     const image = $('#imgTagWrapperId #landingImage').attr('src') || $('#imgBlkFront').attr('src');
     const primeOnly = $('#tryPrimeButton_').length > 0;
     const abroad = $('#globalStoreBadgePopoverInsideBuybox_feature_div').text()?.length > 0;
@@ -46,7 +28,7 @@ export const getParsedProductData = ($: CheerioAPI): ProductParser | undefined =
      $('div[tabular-attribute-name=\'Vendu par\'].tabular-buybox-text span') ?? $('div[tabular-attribute-name=\'Vendido por\'].tabular-buybox-text span');
     const seller = trimNewLines(sellerText.first().text() || sellerText.text());
 
-    const product: ProductParser = {
+    const product: ProductParserInterface = {
       title,
       asin,
       image,
@@ -68,8 +50,8 @@ export const getParsedProductData = ($: CheerioAPI): ProductParser | undefined =
   }
 }
 
-const productParser = async (url: string): Promise<ProductParser | undefined> => {
-  console.log('Parsing product:', url);
+const productParser = async (url: string): Promise<ProductParserInterface | undefined> => {
+  console.log(dayjs().toString() + ' | Parsing product:', url);
   try {
     const browser = await puppeteer.launch({
       headless: true
@@ -113,6 +95,21 @@ const productParser = async (url: string): Promise<ProductParser | undefined> =>
     const $ = load(content);
 
     const product = getParsedProductData($);
+
+    if (product?.asin.includes('undefined')) {
+      if (!existsSync('products')) {
+        mkdirSync('products');
+      }
+
+      await page.screenshot({
+        path: `products/${dayjs().unix}.png`
+      })
+      console.error('ASIN BULUNAMADI??', {
+        product,
+        response,
+        url
+      })
+    }
 
     // Close the browser
     await browser.close();

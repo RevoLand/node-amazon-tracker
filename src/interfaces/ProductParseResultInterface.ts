@@ -1,9 +1,9 @@
-import { ProductParser } from '../components/product/productParser';
 import { Product } from '../entity/Product';
+import { ProductParserInterface } from './ProductParserInterface';
 
 export interface ProductParseResultInterface {
   product?: Product,
-  parsedData: ProductParser,
+  parsedData: ProductParserInterface,
   seller_id?: string | undefined,
   psc?: number | undefined
 }

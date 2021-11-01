@@ -1,9 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, AfterUpdate } from 'typeorm';
+import { ProductTrackerMain } from '../app';
 import { SettingsEnum } from '../helpers/enums/SettingsEnum';
 
 @Entity('settings')
 export class Setting extends BaseEntity {
-
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -15,4 +15,13 @@ export class Setting extends BaseEntity {
 
     @Column()
     value: string;
+
+    @AfterUpdate()
+    async updateProductTracker() {
+      if (this.key !== SettingsEnum.TrackingInterval) {
+        return;
+      }
+
+      await ProductTrackerMain.restart();
+    }
 }

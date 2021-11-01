@@ -2,7 +2,7 @@ import { MessageEmbed } from 'discord.js';
 import { PriceChangeInterface } from '../../interfaces/PriceChangeInterface';
 
 const productPriceDropEmbed = (priceChange: PriceChangeInterface): MessageEmbed => {
-  let descriptionText = `**%${priceChange.priceDiffPerc.toFixed(2)} İNDİRİM**`;
+  let descriptionText = `**%${priceChange.priceDiffPerc} İNDİRİM**`;
 
   if (priceChange.priceDiffPerc >= 90) {
     descriptionText += '\n:fire::fire::fire:';
@@ -25,9 +25,14 @@ const productPriceDropEmbed = (priceChange: PriceChangeInterface): MessageEmbed 
     .addField('Bilinen En Düşük Fiyat', `${priceChange.product.lowest_price}`, true)
     .addField('Önceki Fiyat', `${priceChange.priceHistory.old_price}`, true)
     .addField('Yeni Fiyat', `${priceChange.priceHistory.new_price} (-${priceChange.priceDiff})`, true)
-    .addField('En Düşük Fiyata Olan Fark', `${priceChange.lowestPriceDiff} (% ${priceChange.lowestPriceDiffPerc.toFixed(2)})`, true)
+    .addField('En Düşük Fiyata Olan Fark', `${priceChange.lowestPriceDiff} (% ${priceChange.lowestPriceDiffPerc})`, true)
     .setAuthor(priceChange.product.country)
     .setTimestamp(priceChange.product.updated_at);
+
+  if (priceChange.priceHistory.prime_only) {
+    embed.addField('Prime Özel', 'Evet', true);
+  }
+
 
   if (priceChange.product.image) {
     embed.setThumbnail(priceChange.product.image);
