@@ -76,6 +76,7 @@ export class ProductTracker {
 
     let productsForTracking = await ProductController.getEnabled();
     this.enabledProductsCount = productsForTracking?.length ?? 0;
+    this.discord.user?.setActivity(`${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
 
     if (!productsForTracking || productsForTracking.length === 0) {
       console.log('No products found for tracking.');
