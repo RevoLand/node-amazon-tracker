@@ -180,6 +180,7 @@ export class ProductTracker {
 
       this.discord.user?.setActivity(`Ürün kaydediliyor. | ${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
       await ProductController.upsertProductDetail(productResult);
+      this.discord.user?.setActivity(`${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
     }
 
     await new Promise(r => setTimeout(r, 1000));

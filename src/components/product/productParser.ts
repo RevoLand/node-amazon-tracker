@@ -1,5 +1,7 @@
 import { CheerioAPI, load } from 'cheerio';
+import dayjs from 'dayjs';
 import { Client } from 'discord.js';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import puppeteer from 'puppeteer';
 import { trimNewLines } from '../../helpers/common';
 
@@ -36,7 +38,7 @@ export const getParsedProductData = ($: CheerioAPI): ProductParser | undefined =
     if (['.com.tr', '.es', '.fr', '.it'].includes(locale)) {
       priceText = priceText.replace(/\./g, '').replace(',', '.');
     }
-    const price = priceText.length > 0 ? parseFloat(parseFloat(priceText).toFixed(2)) : undefined;
+    const price = priceText.length > 0 ? +parseFloat(priceText).toFixed(2) : undefined;
 
     const stockText = $('#availability_feature_div > #availability').text() || $('form#addToCart #availability').text();
     const stock = (stockText?.replace(/[^0-9]/g, '')) ? Number(stockText.replace(/[^0-9]/g, '')) : undefined;
@@ -76,8 +78,26 @@ const productParser = async (url: string): Promise<ProductParser | undefined> =>
     // Open a new page in puppeteer
     const page = await browser.newPage();
 
+    await page.setViewport({ width: 1280, height: 720 })
+
     // Navigate to product url
-    await page.goto(url);
+    const response = await page.goto(url);
+
+    if (response.status() !== 200) {
+      const captchaImg = await page.$('img');
+      console.error('Status 200 gelmedi? Captcha?', {
+        status: response.status(),
+        statusText: response.statusText(),
+        captchaImgTest: await captchaImg?.getProperty('src') ?? '-'
+      });
+
+      if (!existsSync('captcha')) {
+        mkdirSync('captcha');
+      }
+
+      writeFileSync(`captcha/${dayjs().unix}.html`, await page.content());
+      return;
+    }
 
     const cookies = (await page.$('#sp-cc-accept')) || '';
 
