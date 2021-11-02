@@ -64,6 +64,8 @@ const productParser = async (url: string, discord: Client): Promise<ProductParse
     // Open a new page in puppeteer
     const page = await browser.newPage();
 
+    await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36 NodeAmazonTracker/1.0.0');
+
     await page.setViewport({ width: 1280, height: 720 })
 
     const tld = getTldFromUrl(url);
