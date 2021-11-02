@@ -32,7 +32,7 @@ const trackCommand: DiscordCommandInterface = {
       });
 
       for (const productUrl of productUrls) {
-        const createProductResult = await ProductController.createProductFromUrl(productUrl);
+        const createProductResult = await ProductController.createProductFromUrl(productUrl, interaction.client);
         if (!createProductResult) {
           console.error('No product detail returned for product url, skipping.', productUrl);
           continue;

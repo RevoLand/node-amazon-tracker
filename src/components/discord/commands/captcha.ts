@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
+import { productTrackerMain } from '../../../app';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
-import { updateCaptcha } from '../../../app';
 
 const captchaCommand: DiscordCommandInterface = {
   data: (new SlashCommandBuilder()
@@ -9,7 +9,7 @@ const captchaCommand: DiscordCommandInterface = {
     .setDescription('Enters captcha text')
     .addStringOption(option => option.setName('captcha').setDescription('Captcha value').setRequired(true))),
   execute: async (interaction: CommandInteraction) => {
-    updateCaptcha(interaction.options.getString('captcha', true).toUpperCase());
+    productTrackerMain.updateCaptcha(interaction.options.getString('captcha', true).toUpperCase());
 
     await interaction.reply({
       content: 'Captcha girildi.',

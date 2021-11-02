@@ -97,10 +97,6 @@ const productParser = async (url: string, discord: Client): Promise<ProductParse
     if (captchaElement) {
       const captchaImg = $('form img').attr('src');
 
-      console.log('captcha?', {
-        captchaImg
-      });
-
       const captchaChannel = discord.channels.cache.get(discordConfig.captchaChannelId);
       if (captchaChannel?.isText()) {
         captchaChannel.send({

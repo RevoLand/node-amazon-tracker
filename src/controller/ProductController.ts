@@ -1,3 +1,4 @@
+import { Client } from 'discord.js';
 import { getRepository } from 'typeorm';
 import { URL } from 'url';
 import productParser from '../components/product/productParser';
@@ -36,9 +37,9 @@ export class ProductController {
     })
   }
 
-  static createProductFromUrl = async (url: string) : Promise<CreateProductFromUrlResultInterface | undefined> => {
+  static createProductFromUrl = async (url: string, discord: Client) : Promise<CreateProductFromUrlResultInterface | undefined> => {
     const urlParameters = (new URL(url)).searchParams;
-    const parsedProductData = await productParser(url);
+    const parsedProductData = await productParser(url, discord);
     const seller_id = urlParameters.has('smid') ? urlParameters.get('smid') ?? '' : undefined;
     const psc = urlParameters.has('psc') ? Number(urlParameters.get('psc')) : undefined;
 
