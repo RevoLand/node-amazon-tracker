@@ -95,12 +95,13 @@ const productParser = async (url: string, discord: Client): Promise<ProductParse
     const captchaElement = await page.$('#captchacharacters');
 
     if (captchaElement) {
+      console.log('Captcha geldi.');
       const captchaImg = $('form img').attr('src');
 
       const captchaChannel = discord.channels.cache.get(discordConfig.captchaChannelId);
       if (captchaChannel?.isText()) {
         captchaChannel.send({
-          content: `Captcha!\nÜrün: ${url}\n\n${captchaImg}`
+          content: `Captcha!\n\nÜrün: ${url}\n\n${captchaImg}` + discordConfig.captchaNotifyUserId ? `\n<@${discordConfig.captchaNotifyUserId}>` : ''
         });
       }
 

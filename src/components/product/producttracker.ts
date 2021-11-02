@@ -61,12 +61,11 @@ export class ProductTracker {
       clearInterval(this.interval);
     }
 
-    this.queueProductsForTracking();
-
     this.interval = setInterval(this.queueProductsForTracking.bind(this), this.trackingIntervalMinutes * 60 * 1000);
 
     this.status = true;
 
+    await this.queueProductsForTracking();
     this.tracker();
   }
 
@@ -127,7 +126,7 @@ export class ProductTracker {
           queue_products: this.queue.products
         });
 
-        return;
+        continue;
       }
 
       products.push(product);
@@ -139,11 +138,12 @@ export class ProductTracker {
 
       if (!parsedProductData) {
         console.error('Ürün bilgisi ayrıştırılamadı.', product);
-        return;
+        continue;
       }
 
       // If price is changed
       if (parsedProductData.price && product.current_price != parsedProductData.price) {
+        let discordNotification = true;
         const priceHistory = new ProductPriceHistory;
         priceHistory.old_price = product.current_price || 0;
         priceHistory.new_price = parsedProductData.price;
@@ -175,23 +175,28 @@ export class ProductTracker {
         const OnlyShowLowestPrices = this.settings.get(SettingsEnum.OnlyNotifyLowestPriceDrops);
 
         if (!MinimumPriceDrop || !MinimumPriceDropPerc || !OnlyShowLowestPrices) {
-          return;
+          console.error('Ayarlar alınamadı!', {
+            MinimumPriceDrop,
+            MinimumPriceDropPerc,
+            OnlyShowLowestPrices
+          });
+          continue;
         }
 
         if (priceHistory.new_price < priceHistory.old_price && priceChange.priceDiff >= +MinimumPriceDrop.value) {
           if (OnlyShowLowestPrices.value === '1' && priceHistory.new_price > (product.lowest_price ?? 0)) {
             console.log(`[${product.asin}]:[${product.country}] OnlyShowLowestPrices aktif ve ürünün yeni fiyatı dip fiyatın üzerinde.`);
 
-            return;
+            discordNotification = false;
           }
 
           if (MinimumPriceDropPerc.value !== '0' && priceChange.priceDiffPerc < +MinimumPriceDropPerc.value) {
             console.log(`[${product.asin}]:[${product.country}] MinimumPriceDropPerc aktif ve ürünün yeni fiyatı belirtilen yüzdelik indirimin altında.`);
 
-            return;
+            discordNotification = false;
           }
 
-          if (discordConfig.notifyChannelId) {
+          if (discordConfig.notifyChannelId && discordNotification) {
             const notifyChannel = this.discord.channels.cache.get(discordConfig.notifyChannelId);
             if (notifyChannel?.isText()) {
               notifyChannel.send({
@@ -210,9 +215,10 @@ export class ProductTracker {
       this.discord.user?.setActivity(`Ürün kaydediliyor. | ${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
       await ProductController.upsertProductDetail(productResult);
       this.discord.user?.setActivity(`${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
+      await new Promise(r => setTimeout(r, 5000));
     }
 
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 10000));
     this.tracker();
   }
 

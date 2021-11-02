@@ -11,7 +11,7 @@ const productPriceChangeEmbed = (priceChange: PriceChangeInterface): MessageEmbe
     .addField('Yeni Fiyat', `${priceChange.priceHistory.new_price} (${priceChange.priceDiff})`, true)
     .addField('En Düşük Fiyata Olan Fark', `${priceChange.lowestPriceDiff} (% ${priceChange.lowestPriceDiffPerc})`, true)
     .setAuthor(priceChange.product.country)
-    .setTimestamp(priceChange.product.updated_at);
+    .setTimestamp();
 
   if (priceChange.priceHistory.prime_only) {
     embed.addField('Prime Özel', 'Evet', true);
