@@ -28,8 +28,8 @@ export const getParsedProductData = ($: CheerioAPI): ProductParserInterface | un
 
     const stockText = $('#availability_feature_div > #availability').text() || $('form#addToCart #availability').text();
     const stock = (stockText?.replace(/[^0-9]/g, '')) ? Number(stockText.replace(/[^0-9]/g, '')) : undefined;
-    const sellerText = $('#merchant-info span') ?? $('div[tabular-attribute-name=\'Venditore\'].tabular-buybox-text span') ?? $('div[tabular-attribute-name=\'Sold by\'].tabular-buybox-text span') ??
-      $('div[tabular-attribute-name=\'Vendu par\'].tabular-buybox-text span') ?? $('div[tabular-attribute-name=\'Vendido por\'].tabular-buybox-text span');
+    const sellerText = $('#merchant-info span') ?? $('div[tabular-attribute-name="Venditore"] span') ?? $('div[tabular-attribute-name="Sold by"] span') ??
+      $('div[tabular-attribute-name="Vendu par"] span') ?? $('div[tabular-attribute-name="Vendido por"] span');
     const seller = trimNewLines(sellerText.first().text() || sellerText.text());
 
     const product: ProductParserInterface = {
