@@ -1,12 +1,4 @@
-interface databaseConfig {
-  hostname: string,
-  port: number,
-  name: string,
-  user: string,
-  password: string
-}
-
-const config: databaseConfig = {
+const databaseConfig = {
   hostname: process.env.DB_HOST ?? 'localhost',
   port: +(process.env.DB_PORT ?? 3306),
   name: process.env.DB_NAME ?? 'amazon-tracker',
@@ -14,4 +6,4 @@ const config: databaseConfig = {
   password: process.env.DB_PASSWORD ?? '',
 }
 
-export default config;
+export default databaseConfig;

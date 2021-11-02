@@ -1,8 +1,12 @@
 import { CheerioAPI, load } from 'cheerio';
 import dayjs from 'dayjs';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { Client } from 'discord.js';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import puppeteer from 'puppeteer';
+import { productTrackerMain } from '../../app';
+import discordConfig from '../../config/discord';
 import { trimNewLines } from '../../helpers/common';
+import { getTldFromUrl } from '../../helpers/productUrlHelper';
 import { ProductParserInterface } from '../../interfaces/ProductParserInterface';
 
 export const getParsedProductData = ($: CheerioAPI): ProductParserInterface | undefined => {
@@ -25,7 +29,7 @@ export const getParsedProductData = ($: CheerioAPI): ProductParserInterface | un
     const stockText = $('#availability_feature_div > #availability').text() || $('form#addToCart #availability').text();
     const stock = (stockText?.replace(/[^0-9]/g, '')) ? Number(stockText.replace(/[^0-9]/g, '')) : undefined;
     const sellerText = $('#merchant-info span') ?? $('div[tabular-attribute-name=\'Venditore\'].tabular-buybox-text span') ?? $('div[tabular-attribute-name=\'Sold by\'].tabular-buybox-text span') ??
-     $('div[tabular-attribute-name=\'Vendu par\'].tabular-buybox-text span') ?? $('div[tabular-attribute-name=\'Vendido por\'].tabular-buybox-text span');
+      $('div[tabular-attribute-name=\'Vendu par\'].tabular-buybox-text span') ?? $('div[tabular-attribute-name=\'Vendido por\'].tabular-buybox-text span');
     const seller = trimNewLines(sellerText.first().text() || sellerText.text());
 
     const product: ProductParserInterface = {
@@ -50,7 +54,7 @@ export const getParsedProductData = ($: CheerioAPI): ProductParserInterface | un
   }
 }
 
-const productParser = async (url: string): Promise<ProductParserInterface | undefined> => {
+const productParser = async (url: string, discord: Client): Promise<ProductParserInterface | undefined> => {
   console.log(dayjs().toString() + ' | Parsing product:', url);
   try {
     const browser = await puppeteer.launch({
@@ -62,37 +66,66 @@ const productParser = async (url: string): Promise<ProductParserInterface | unde
 
     await page.setViewport({ width: 1280, height: 720 })
 
-    // Navigate to product url
-    const response = await page.goto(url);
+    const tld = getTldFromUrl(url);
+    const cookieFileName = `cookies${tld}.json`;
+    try {
+      if (existsSync(cookieFileName)) {
+        const cookies = readFileSync(cookieFileName, 'utf8');
 
-    if (response.status() !== 200) {
-      const captchaImg = await page.$('img');
-      console.error('Status 200 gelmedi? Captcha?', {
-        status: response.status(),
-        statusText: response.statusText(),
-        captchaImgTest: await captchaImg?.getProperty('src') ?? '-'
-      });
-
-      if (!existsSync('captcha')) {
-        mkdirSync('captcha');
+        if (cookies) {
+          await page.setCookie(...JSON.parse(cookies));
+        }
       }
-
-      writeFileSync(`captcha/${dayjs().unix}.html`, await page.content());
-      return;
+    } catch (error) {
+      console.error('cookie parse error', error);
     }
 
-    const cookies = (await page.$('#sp-cc-accept')) || '';
+    // Navigate to product url
+    await page.goto(url);
 
-    if (cookies) {
+    const cookiesElement = await page.$('#sp-cc-accept');
+    if (cookiesElement) {
       // Accept cookies!
       await page.click('#sp-cc-accept');
     }
 
-    // Get page content and replace newlines
-    const content = (await page.content()).replace(/\n\s*\n/gm, '');
-
     // Load the content into cheerio for easier parsing
-    const $ = load(content);
+    const $ = load((await page.content()).replace(/\n\s*\n/gm, ''));
+
+    const captchaElement = await page.$('#captchacharacters');
+
+    if (captchaElement) {
+      const captchaImg = $('form img').attr('src');
+
+      console.log('captcha?', {
+        captchaImg
+      });
+
+      const captchaChannel = discord.channels.cache.get(discordConfig.captchaChannelId);
+      if (captchaChannel?.isText()) {
+        captchaChannel.send({
+          content: `Captcha!\nÜrün: ${url}\n\n${captchaImg}`
+        });
+      }
+
+      while (!productTrackerMain.captcha) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
+
+      await page.type('#captchacharacters', productTrackerMain.captcha);
+      await page.click('button[type="submit"]');
+
+      productTrackerMain.updateCaptcha('');
+
+      await page.waitForNavigation();
+
+      const cookieJson = JSON.stringify(await page.cookies())
+      writeFileSync(cookieFileName, cookieJson)
+
+      // Close the browser
+      await browser.close();
+      return await productParser(url, discord);
+    }
 
     const product = getParsedProductData($);
 
@@ -102,13 +135,18 @@ const productParser = async (url: string): Promise<ProductParserInterface | unde
       }
 
       await page.screenshot({
-        path: `products/${dayjs().unix}.png`
+        path: `products/${dayjs().unix()}.png`
       })
+
+      writeFileSync(`products/${dayjs().unix()}.html`, await page.content());
       console.error('ASIN BULUNAMADI??', {
         product,
-        response,
         url
       })
+
+      // Close the browser
+      await browser.close();
+      return;
     }
 
     // Close the browser

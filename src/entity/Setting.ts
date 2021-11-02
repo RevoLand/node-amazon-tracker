@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, AfterUpdate } from 'typeorm';
-import { ProductTrackerMain } from '../app';
+import { productTrackerMain } from '../app';
 import { SettingsEnum } from '../helpers/enums/SettingsEnum';
 
 @Entity('settings')
@@ -22,6 +22,6 @@ export class Setting extends BaseEntity {
         return;
       }
 
-      await ProductTrackerMain.restart();
+      await productTrackerMain.restart();
     }
 }

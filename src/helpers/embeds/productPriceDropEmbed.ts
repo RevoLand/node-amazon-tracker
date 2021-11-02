@@ -38,8 +38,8 @@ const productPriceDropEmbed = (priceChange: PriceChangeInterface): MessageEmbed 
     embed.setThumbnail(priceChange.product.image);
   }
 
-  if (priceChange.product.seller) {
-    embed.setFooter('Satıcı: ' + priceChange.product.seller);
+  if (priceChange.parsedProductData.seller) {
+    embed.setFooter('Satıcı: ' + priceChange.parsedProductData.seller);
   }
 
   return embed;

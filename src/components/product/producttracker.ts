@@ -3,6 +3,7 @@ import { Client } from 'discord.js';
 import { exit } from 'process';
 import discordConfig from '../../config/discord';
 import { ProductController } from '../../controller/ProductController';
+import { Product } from '../../entity/Product';
 import { ProductPriceHistory } from '../../entity/ProductPriceHistory';
 import productPriceChangeEmbed from '../../helpers/embeds/productPriceChangeEmbed';
 import productPriceDropEmbed from '../../helpers/embeds/productPriceDropEmbed';
@@ -27,6 +28,8 @@ export class ProductTracker {
   enabledProductsCount: number;
 
   status = false;
+
+  captcha: string;
 
   constructor(settings: Settings, discord: Client) {
     this.settings = settings;
@@ -114,6 +117,8 @@ export class ProductTracker {
   }
 
   async tracker() {
+    const products: Product[] = [];
+
     while (!this.queue.isEmpty()) {
       const product = this.queue.dequeue();
 
@@ -121,24 +126,21 @@ export class ProductTracker {
         console.error('Queue boş olmamasına rağmen ürün gelmedi?', {
           queue_products: this.queue.products
         });
-        exit();
+
+        return;
       }
 
+      products.push(product);
+    }
+
+    for (const product of products) {
       this.discord.user?.setActivity(`Ürüne gidiliyor. | ${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
-      const parsedProductData = await productParser(product.getUrl());
+      const parsedProductData = await productParser(product.getUrl(), this.discord);
 
       if (!parsedProductData) {
         console.error('Ürün bilgisi ayrıştırılamadı.', product);
-        continue;
+        return;
       }
-
-      const productResult: ProductParseResultInterface = {
-        product: product,
-        parsedData: parsedProductData
-      };
-
-      this.discord.user?.setActivity(`Ürün kaydediliyor. | ${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
-      await ProductController.upsertProductDetail(productResult);
 
       // If price is changed
       if (parsedProductData.price && product.current_price != parsedProductData.price) {
@@ -151,6 +153,7 @@ export class ProductTracker {
 
         const priceChange: PriceChangeInterface = {
           product,
+          parsedProductData,
           priceHistory,
           priceDiff: +(priceHistory.old_price - priceHistory.new_price).toFixed(2),
           lowestPriceDiff: +((product.lowest_price ?? 0) - priceHistory.new_price).toFixed(2),
@@ -172,18 +175,20 @@ export class ProductTracker {
         const OnlyShowLowestPrices = this.settings.get(SettingsEnum.OnlyNotifyLowestPriceDrops);
 
         if (!MinimumPriceDrop || !MinimumPriceDropPerc || !OnlyShowLowestPrices) {
-          continue;
+          return;
         }
 
         if (priceHistory.new_price < priceHistory.old_price && priceChange.priceDiff >= +MinimumPriceDrop.value) {
           if (OnlyShowLowestPrices.value === '1' && priceHistory.new_price > (product.lowest_price ?? 0)) {
             console.log(`[${product.asin}]:[${product.country}] OnlyShowLowestPrices aktif ve ürünün yeni fiyatı dip fiyatın üzerinde.`);
-            continue;
+
+            return;
           }
 
           if (MinimumPriceDropPerc.value !== '0' && priceChange.priceDiffPerc < +MinimumPriceDropPerc.value) {
             console.log(`[${product.asin}]:[${product.country}] MinimumPriceDropPerc aktif ve ürünün yeni fiyatı belirtilen yüzdelik indirimin altında.`);
-            continue;
+
+            return;
           }
 
           if (discordConfig.notifyChannelId) {
@@ -197,10 +202,21 @@ export class ProductTracker {
         }
       }
 
+      const productResult: ProductParseResultInterface = {
+        product,
+        parsedData: parsedProductData
+      };
+
+      this.discord.user?.setActivity(`Ürün kaydediliyor. | ${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
+      await ProductController.upsertProductDetail(productResult);
       this.discord.user?.setActivity(`${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
     }
 
     await new Promise(r => setTimeout(r, 1000));
     this.tracker();
+  }
+
+  updateCaptcha(text: string) {
+    this.captcha = text;
   }
 }

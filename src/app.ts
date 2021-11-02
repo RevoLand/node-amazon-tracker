@@ -5,7 +5,7 @@ import { connectToDiscord } from './helpers/discord';
 import { SettingController } from './controller/SettingController';
 import { ProductTracker } from './components/product/producttracker';
 
-export let ProductTrackerMain: ProductTracker;
+export let productTrackerMain: ProductTracker;
 
 const main = async () => {
   await connectToSql();
@@ -17,8 +17,8 @@ const main = async () => {
 
   const discord = await connectToDiscord();
 
-  ProductTrackerMain = new ProductTracker(settings, discord);
-  ProductTrackerMain.start();
+  productTrackerMain = new ProductTracker(settings, discord);
+  productTrackerMain.start();
 };
 
 main();

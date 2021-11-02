@@ -4,3 +4,4 @@ package-lock.json
 products/
 dist/
 .vscode/
+cookies*.json

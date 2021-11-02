@@ -11,6 +11,7 @@ declare global {
       DISCORD_GUILD_ID: string;
       DISCORD_NOTIFY_CHANNEL_ID: string;
       DISCORD_BOTSPAM_CHANNEL_ID: string;
+      DISCORD_CAPTCHA_CHANNEL_ID: string;
     }
   }
 }
