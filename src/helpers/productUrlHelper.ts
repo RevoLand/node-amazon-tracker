@@ -40,7 +40,15 @@ export const parseAsinFromUrl = (urlToParse: string): string => {
   }
 
   if (url.pathname.includes('/dp/')) {
-    return splittedPathname.length > 3 ? splittedPathname[5] : splittedPathname[2];
+    if (splittedPathname.length > 5) {
+      return splittedPathname[5];
+    }
+
+    if (splittedPathname[2].includes('dp')) {
+      return splittedPathname[3];
+    }
+
+    return splittedPathname[2];
   }
 
   console.error('ASIN parse edilemedi?', { splittedPathname });

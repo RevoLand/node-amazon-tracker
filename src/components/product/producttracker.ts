@@ -61,7 +61,7 @@ export class ProductTracker {
       clearInterval(this.interval);
     }
 
-    this.interval = setInterval(this.queueProductsForTracking.bind(this), this.trackingIntervalMinutes * 60 * 1000);
+    this.interval = setInterval(this.queueProductsForTracking.bind(this), this.trackingIntervalMinutes / 4 * 60 * 1000);
 
     this.status = true;
 
