@@ -103,7 +103,7 @@ const productParser = async (url: string, discord: Client): Promise<ProductParse
       const captchaChannel = discord.channels.cache.get(discordConfig.captchaChannelId);
       if (captchaChannel?.isText()) {
         captchaChannel.send({
-          content: `Captcha!\n\nÜrün: ${url}\n\n${captchaImg}` + discordConfig.captchaNotifyUserId ? `\n<@${discordConfig.captchaNotifyUserId}>` : ''
+          content: `Captcha!\n\nÜrün: ${url}\n\n${captchaImg}` + (discordConfig.captchaNotifyUserId ? `\n<@${discordConfig.captchaNotifyUserId}>` : '')
         });
       }
 
