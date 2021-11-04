@@ -12,7 +12,7 @@ export const readDiscordCommands = async (): Promise<Collection<string, DiscordC
   console.log('Reading available Discord commands.');
 
   const commands = new Collection<string, DiscordCommandInterface>();
-  const commandFiles = readdirSync(resolve(__dirname, './commands')).filter(file => file.endsWith('.ts'));
+  const commandFiles = readdirSync(resolve(__dirname, './commands')).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
 
   for (const file of commandFiles) {
     const command: DiscordCommandInterface = (await import(resolve(__dirname, `./commands/${file}`))).default;
