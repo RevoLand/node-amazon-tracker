@@ -15,7 +15,7 @@ export const connectToSql = async (): Promise<Connection | undefined> => {
       password: database.password,
       database: database.name,
       entities: [
-        __dirname + '/../entity/*.ts'
+        __dirname + '/../entity/*{.ts,.js}'
       ],
       synchronize: true,
       logging: false

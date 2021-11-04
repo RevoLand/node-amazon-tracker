@@ -1,10 +1,13 @@
 {
   "name": "node-amazon-tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "src/app.js",
   "scripts": {
-    "start": "ts-node ./src/app.ts",
+    "dev": "ts-node ./src/app.ts",
+    "build": "tsc --build",
+    "postbuild": "cp package.json dist/package.json && cp .env.example dist/.env.example && cd dist",
+    "start": "node ./dist/app.js",
     "test": "jest"
   },
   "repository": {

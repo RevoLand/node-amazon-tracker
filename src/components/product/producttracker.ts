@@ -133,6 +133,9 @@ export class ProductTracker {
     }
 
     for (const product of products) {
+      // Reload latest data from database
+      product.reload();
+
       this.discord.user?.setActivity(`Ürüne gidiliyor. | ${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
       const parsedProductData = await productParser(product.getUrl(), this.discord);
 
