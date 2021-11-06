@@ -19,7 +19,7 @@ import { shuffle } from 'lodash';
 export class ProductTracker {
   queue: ProductTrackerQueue;
 
-  browser: puppeteer.Browser;
+  browser?: puppeteer.Browser;
 
   settings: Settings;
 
@@ -27,7 +27,7 @@ export class ProductTracker {
 
   trackingIntervalMinutes: number;
 
-  interval: NodeJS.Timer | undefined;
+  interval?: NodeJS.Timer;
 
   status = false;
 
@@ -43,9 +43,19 @@ export class ProductTracker {
   }
 
   async setBrowser() {
-    this.browser = await puppeteer.launch({
+    if (this.browser) {
+      return this.browser;
+    }
+
+    const browser = await puppeteer.launch({
       headless: true
     });
+
+    browser.on('disconnected', () => this.browser = undefined);
+
+    this.browser = browser;
+
+    return browser;
   }
 
   async start() {
@@ -61,8 +71,6 @@ export class ProductTracker {
       return;
     }
 
-    await this.setBrowser();
-
     while (!this.discord.isReady()) {
       console.log('Discord client is not ready!');
       await new Promise(r => setTimeout(r, 1000));
@@ -74,11 +82,14 @@ export class ProductTracker {
       clearInterval(this.interval);
     }
 
+    this.status = true;
+    if (this.country === 'discord') {
+      return;
+    }
     this.interval = setInterval(this.queueProductsForTracking.bind(this), this.trackingIntervalMinutes / 4 * 60 * 1000);
 
-    this.status = true;
-
     await this.queueProductsForTracking();
+
     this.tracker();
   }
 
@@ -102,7 +113,10 @@ export class ProductTracker {
 
     this.interval = undefined;
     this.status = false;
-    await this.browser.close();
+    if (this.browser) {
+      await this.browser.close();
+      this.browser = undefined;
+    }
   }
 
   async queueProductsForTracking() {
@@ -149,6 +163,15 @@ export class ProductTracker {
       }
 
       products.push(product);
+    }
+
+    if (products.length > 0 && !this.browser) {
+      await this.setBrowser();
+    }
+
+    if (products.length === 0 && this.browser) {
+      await this.browser.close();
+      this.browser = undefined;
     }
 
     for (const product of products) {

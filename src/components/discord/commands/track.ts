@@ -32,10 +32,11 @@ const trackCommand: DiscordCommandInterface = {
         ephemeral: true
       });
 
-      const productTracker = productTrackers.find(_productTracker => _productTracker.country === 'discord') ?? new ProductTracker('discord', await SettingController.getAll(), interaction.client);
+      const productTracker = productTrackers.find(_productTracker => _productTracker.country === 'discord');
 
-      if (!productTracker.browser) {
-        await productTracker.setBrowser();
+      if (!productTracker) {
+        console.error('discord productTracker bulunamadı?!');
+        return;
       }
 
       for (const productUrl of productUrls) {

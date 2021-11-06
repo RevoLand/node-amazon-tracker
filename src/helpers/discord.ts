@@ -70,10 +70,11 @@ export const connectToDiscord = async (): Promise<Client> => {
         });
 
         try {
-          const productTracker = productTrackers.find(_productTracker => _productTracker.country === 'discord') ?? new ProductTracker('discord', await SettingController.getAll(), client);
+          const productTracker = productTrackers.find(_productTracker => _productTracker.country === 'discord');
 
-          if (!productTracker.browser) {
-            await productTracker.setBrowser();
+          if (!productTracker) {
+            console.error('discord productTrackr bulunamadı: !takip');
+            return;
           }
 
           for (const productUrl of productUrls) {

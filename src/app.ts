@@ -29,8 +29,6 @@ const main = async () => {
   const productTracker = new ProductTracker('discord', settings, discord);
 
   productTrackers.push(productTracker);
-
-  productTracker.setBrowser();
 };
 
 main();

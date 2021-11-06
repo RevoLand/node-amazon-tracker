@@ -1,5 +1,13 @@
 const countries = {
-  allowedCountries: ['.com', '.de', '.fr', '.es', '.it', '.com.tr', '.co.uk']
+  allowedCountries: [
+    '.com.tr',
+    '.com',
+    '.de',
+    '.fr',
+    '.es',
+    '.it',
+    '.co.uk'
+  ]
 }
 
 export default countries;

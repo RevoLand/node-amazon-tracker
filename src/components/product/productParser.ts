@@ -20,7 +20,7 @@ const getParsedProductData = ($: CheerioAPI): ProductParserInterface | undefined
     const shippingFee = $('#mir-layout-DELIVERY_BLOCK-slot-DELIVERY_MESSAGE a').text();
 
     let priceText = ($('#booksHeaderSection #price').text() || $('#price_inside_buybox').text() || $('#corePrice_desktop span[data-a-color=\'price\'] .a-offscreen').first().text()).replace(/[^0-9,.]/g, '');
-    if (['.com.tr', '.es', '.fr', '.it'].includes(locale)) {
+    if (['.com.tr', '.es', '.fr', '.it', '.de'].includes(locale)) {
       priceText = priceText.replace(/\./g, '').replace(',', '.');
     }
     const price = priceText.length > 0 ? +parseFloat(priceText).toFixed(2) : undefined;
@@ -55,15 +55,12 @@ const getParsedProductData = ($: CheerioAPI): ProductParserInterface | undefined
 
 const productParser = async (url: string, productTracker: ProductTracker): Promise<ProductParserInterface | undefined> => {
   console.log(dayjs().toString() + ' | Parsing product:', url);
+  const page = await (await productTracker.setBrowser()).newPage();
+
+  await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36 NodeAmazonTracker/1.0.0');
+  await page.setViewport({ width: 1280, height: 720 })
+
   try {
-    const pages = await productTracker.browser.pages();
-    // Open a new page in puppeteer
-    const page = pages.length > 0 ? pages[0] : await productTracker.browser.newPage();
-
-    await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36 NodeAmazonTracker/1.0.0');
-
-    await page.setViewport({ width: 1280, height: 720 })
-
     const tld = getTldFromUrl(url);
     const cookieFileName = `cookies${tld}.json`;
     try {
@@ -78,8 +75,20 @@ const productParser = async (url: string, productTracker: ProductTracker): Promi
       console.error('cookie parse error', error);
     }
 
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (['stylesheet', 'font', 'image'].includes(req.resourceType())) {
+        req.abort();
+        return;
+      }
+
+      req.continue();
+    })
+
     // Navigate to product url
-    await page.goto(url);
+    await page.goto(url, {
+      timeout: 60_000
+    });
 
     const cookiesElement = await page.$('#sp-cc-accept');
     if (cookiesElement) {
@@ -129,7 +138,9 @@ const productParser = async (url: string, productTracker: ProductTracker): Promi
       await Promise.all([page.click('button[type="submit"]'), page.waitForNavigation()]);
 
       const cookieJson = JSON.stringify(await page.cookies())
-      writeFileSync(cookieFileName, cookieJson)
+      writeFileSync(cookieFileName, cookieJson);
+
+      await page.close();
 
       return await productParser(url, productTracker);
     }
@@ -151,12 +162,17 @@ const productParser = async (url: string, productTracker: ProductTracker): Promi
         url
       })
 
+      await page.close();
+
       return;
     }
+
+    await page.close();
 
     return product;
   } catch (error) {
     console.error('productParser error', error);
+    await page.close();
   }
 }
 
