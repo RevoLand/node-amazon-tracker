@@ -32,18 +32,20 @@ export class Product extends BaseEntity {
     price?: number;
 
     @Column('decimal', {
+      name: 'lowest_price',
       precision: 14,
       scale: 2,
       nullable: true
     })
-    lowest_price?: number;
+    lowestPrice?: number;
 
     @Column('decimal', {
+      name: 'current_price',
       precision: 14,
       scale: 2,
       nullable: true
     })
-    current_price?: number;
+    currentPrice?: number;
 
     @Column({
       nullable: true
@@ -51,9 +53,10 @@ export class Product extends BaseEntity {
     seller?: string;
 
     @Column({
+      name: 'seller_id',
       nullable: true
     })
-    seller_id?: string;
+    sellerId?: string;
 
     @Column({
       nullable: true
@@ -66,11 +69,15 @@ export class Product extends BaseEntity {
     })
     enabled = true;
 
-    @CreateDateColumn()
-    created_at: Date;
+    @CreateDateColumn({
+      name: 'created_at'
+    })
+    createdAt: Date;
 
-    @UpdateDateColumn()
-    updated_at: Date;
+    @UpdateDateColumn({
+      name: 'updated_at'
+    })
+    updatedAt: Date;
 
     @OneToMany(() => ProductPriceHistory, priceHistory => priceHistory.product, {
       onDelete: 'CASCADE',
@@ -83,8 +90,8 @@ export class Product extends BaseEntity {
       const queryParameters = new URLSearchParams();
       let productUrl = `https://www.amazon${this.country}/gp/product/${this.asin}/`;
 
-      if (this.seller_id) {
-        queryParameters.append('smid', this.seller_id);
+      if (this.sellerId) {
+        queryParameters.append('smid', this.sellerId);
       }
 
       if (this.psc) {

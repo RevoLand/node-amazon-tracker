@@ -1,14 +1,12 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
-import { exit } from 'process';
 import { ProductController } from '../../../controller/ProductController';
 import productCreatedEmbed from '../../../helpers/embeds/productCreatedEmbed';
 import productUpdated from '../../../helpers/embeds/productUpdatedEmbed';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
 import { parseProductUrls } from '../../../helpers/productUrlHelper';
-import { ExitCodesEnum } from '../../../helpers/enums/ExitCodesEnum';
 import { productTrackers } from '../../../app';
-import { ProductTracker } from '../../product/producttracker';
+import { ProductTracker } from '../../product/ProductTracker';
 import { SettingController } from '../../../controller/SettingController';
 
 const trackCommand: DiscordCommandInterface = {
@@ -47,7 +45,7 @@ const trackCommand: DiscordCommandInterface = {
           continue;
         }
 
-        const productEmbed = createProductResult.existing_product_detail ?
+        const productEmbed = createProductResult.existingProduct ?
           productUpdated(createProductResult.productDetail) :
           productCreatedEmbed(createProductResult.productDetail);
         await interaction.channel?.send({
@@ -57,7 +55,7 @@ const trackCommand: DiscordCommandInterface = {
     } catch (error) {
       console.error('An error happened while executing the track command function.', error);
 
-      exit(ExitCodesEnum.TrackCommandFailed);
+      throw new Error('TrackCommandFailed');
     }
   }
 }

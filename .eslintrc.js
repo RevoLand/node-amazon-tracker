@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 module.exports = {
   env: {
     'node': true,
@@ -5,7 +6,8 @@ module.exports = {
     'jest': true
   },
   plugins: [
-    '@typescript-eslint'
+    '@typescript-eslint',
+    'jest'
   ],
   extends: [
     'eslint:recommended',
@@ -35,6 +37,7 @@ module.exports = {
         'SwitchCase': 1
       }
     ],
+    '@typescript-eslint/naming-convention': 'error',
     'curly': 'error', // https://eslint.org/docs/rules/curly
     'no-new-wrappers': 'error', // https://eslint.org/docs/rules/no-new-wrappers
     'block-scoped-var': 'error', // https://eslint.org/docs/rules/block-scoped-var

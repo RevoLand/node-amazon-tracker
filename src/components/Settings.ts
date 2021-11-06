@@ -2,7 +2,7 @@ import { Setting } from '../entity/Setting';
 import { SettingsEnum } from '../helpers/enums/SettingsEnum';
 
 export class Settings {
-  settings: Setting[];
+  private settings: Setting[];
 
   constructor(settings: Setting[]) {
     this.settings = settings;

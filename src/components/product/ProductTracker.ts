@@ -13,7 +13,7 @@ import { PriceChangeInterface } from '../../interfaces/PriceChangeInterface';
 import { ProductParseResultInterface } from '../../interfaces/ProductParseResultInterface';
 import { Settings } from '../Settings';
 import productParser from './productParser';
-import { ProductTrackerQueue } from './producttrackerqueue';
+import { ProductTrackerQueue } from './ProductTrackerQueue';
 import { shuffle } from 'lodash';
 
 export class ProductTracker {
@@ -28,8 +28,6 @@ export class ProductTracker {
   trackingIntervalMinutes: number;
 
   interval: NodeJS.Timer | undefined;
-
-  enabledProductsCount: number;
 
   status = false;
 
@@ -53,7 +51,7 @@ export class ProductTracker {
   async start() {
     console.log('Starting Product Tracker... ' + dayjs().toString());
 
-    const trackingInterval = this.settings.get(SettingsEnum.TrackingInterval);
+    const trackingInterval = this.settings.get(SettingsEnum.trackingInterval);
 
     if (!trackingInterval) {
       exit();
@@ -111,8 +109,7 @@ export class ProductTracker {
     console.log(`[${this.country}] Queueing products for tracking... ` + dayjs().toString());
 
     try {
-      let productsForTracking = await ProductController.getEnabledByCountryAndDate(this.country, dayjs().subtract(this.trackingIntervalMinutes, 'm').toDate());
-      this.enabledProductsCount = productsForTracking?.length ?? 0;
+      let productsForTracking = await ProductController.enabledWithCountryAndDateFilter(this.country, dayjs().subtract(this.trackingIntervalMinutes, 'm').toDate());
 
       if (!productsForTracking || productsForTracking.length === 0) {
         return;
@@ -144,7 +141,8 @@ export class ProductTracker {
 
       if (!product) {
         console.error('Queue boş olmamasına rağmen ürün gelmedi?', {
-          queue_products: this.queue.products
+          productQueue: this.queue.products,
+          country: this.country
         });
 
         continue;
@@ -165,23 +163,23 @@ export class ProductTracker {
       }
 
       // If price is changed
-      if (parsedProductData.price && product.current_price != parsedProductData.price) {
+      if (parsedProductData.price && product.currentPrice != parsedProductData.price) {
         let discordNotification = true;
         const priceHistory = new ProductPriceHistory;
-        priceHistory.old_price = product.current_price || 0;
-        priceHistory.new_price = parsedProductData.price;
+        priceHistory.oldPrice = product.currentPrice || 0;
+        priceHistory.newPrice = parsedProductData.price;
         priceHistory.product = product;
-        priceHistory.prime_only = !!parsedProductData.primeOnly;
+        priceHistory.primeOnly = !!parsedProductData.primeOnly;
         await priceHistory.save();
 
         const priceChange: PriceChangeInterface = {
           product,
           parsedProductData,
           priceHistory,
-          priceDiff: +(priceHistory.old_price - priceHistory.new_price).toFixed(2),
-          lowestPriceDiff: +((product.lowest_price ?? 0) - priceHistory.new_price).toFixed(2),
-          priceDiffPerc: +(100 - (priceHistory.new_price / priceHistory.old_price * 100)).toFixed(2),
-          lowestPriceDiffPerc: +(100 - (priceHistory.new_price / (product.lowest_price ?? 0) * 100)).toFixed(2)
+          priceDiff: +(priceHistory.oldPrice - priceHistory.newPrice).toFixed(2),
+          lowestPriceDiff: +((product.lowestPrice ?? 0) - priceHistory.newPrice).toFixed(2),
+          priceDiffPerc: +(100 - (priceHistory.newPrice / priceHistory.oldPrice * 100)).toFixed(2),
+          lowestPriceDiffPerc: +(100 - (priceHistory.newPrice / (product.lowestPrice ?? 0) * 100)).toFixed(2)
         }
 
         if (discordConfig.botSpamChannelId) {
@@ -193,27 +191,28 @@ export class ProductTracker {
           }
         }
 
-        const MinimumPriceDrop = this.settings.get(SettingsEnum.MinimumPriceDrop);
-        const MinimumPriceDropPerc = this.settings.get(SettingsEnum.MinimumPriceDropPercentage);
-        const OnlyShowLowestPrices = this.settings.get(SettingsEnum.OnlyNotifyLowestPriceDrops);
+        const minimumPriceDrop = this.settings.get(SettingsEnum.minimumPriceDrop);
+        const minimumPriceDropPerc = this.settings.get(SettingsEnum.minimumPriceDropPercentage);
+        const onlyShowLowestPrices = this.settings.get(SettingsEnum.onlyNotifyLowestPriceDrops);
 
-        if (!MinimumPriceDrop || !MinimumPriceDropPerc || !OnlyShowLowestPrices) {
+        if (!minimumPriceDrop || !minimumPriceDropPerc || !onlyShowLowestPrices) {
           console.error('Ayarlar alınamadı!', {
-            MinimumPriceDrop,
-            MinimumPriceDropPerc,
-            OnlyShowLowestPrices
+            minimumPriceDrop,
+            minimumPriceDropPerc,
+            onlyShowLowestPrices
           });
+
           continue;
         }
 
-        if (priceHistory.new_price < priceHistory.old_price && priceChange.priceDiff >= +MinimumPriceDrop.value) {
-          if (OnlyShowLowestPrices.value === '1' && priceHistory.new_price > (product.lowest_price ?? 0)) {
+        if (priceHistory.newPrice < priceHistory.oldPrice && priceChange.priceDiff >= +minimumPriceDrop.value) {
+          if (onlyShowLowestPrices.value === '1' && priceHistory.newPrice > (product.lowestPrice ?? 0)) {
             console.log(`[${product.asin}]:[${product.country}] OnlyShowLowestPrices aktif ve ürünün yeni fiyatı dip fiyatın üzerinde.`);
 
             discordNotification = false;
           }
 
-          if (MinimumPriceDropPerc.value !== '0' && priceChange.priceDiffPerc < +MinimumPriceDropPerc.value) {
+          if (minimumPriceDropPerc.value !== '0' && priceChange.priceDiffPerc < +minimumPriceDropPerc.value) {
             console.log(`[${product.asin}]:[${product.country}] MinimumPriceDropPerc aktif ve ürünün yeni fiyatı belirtilen yüzdelik indirimin altında.`);
 
             discordNotification = false;
@@ -235,7 +234,7 @@ export class ProductTracker {
         parsedData: parsedProductData
       };
 
-      await ProductController.upsertProductDetail(productResult);
+      await ProductController.upsertProduct(productResult);
       await new Promise(r => setTimeout(r, 10000));
     }
 

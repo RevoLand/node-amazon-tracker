@@ -4,6 +4,6 @@ import { ProductParserInterface } from './ProductParserInterface';
 export interface ProductParseResultInterface {
   product?: Product,
   parsedData: ProductParserInterface,
-  seller_id?: string | undefined,
+  sellerId?: string | undefined,
   psc?: number | undefined
 }

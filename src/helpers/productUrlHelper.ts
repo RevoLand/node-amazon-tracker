@@ -21,7 +21,7 @@ export const parseProductUrls = (text: string) => {
 
     const tld = getTldFromUrl(url);
 
-    if (!countries.allowed_countries.includes(tld)) {
+    if (!countries.allowedCountries.includes(tld)) {
       return false;
     }
 

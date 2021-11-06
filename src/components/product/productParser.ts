@@ -6,9 +6,9 @@ import discordConfig from '../../config/discord';
 import { trimNewLines } from '../../helpers/common';
 import { getTldFromUrl } from '../../helpers/productUrlHelper';
 import { ProductParserInterface } from '../../interfaces/ProductParserInterface';
-import { ProductTracker } from './producttracker';
+import { ProductTracker } from './ProductTracker';
 
-export const getParsedProductData = ($: CheerioAPI): ProductParserInterface | undefined => {
+const getParsedProductData = ($: CheerioAPI): ProductParserInterface | undefined => {
   try {
     // const htmlLang = $('html').attr('lang');
     const locale = $('.nav-logo-locale').text();
@@ -95,7 +95,6 @@ const productParser = async (url: string, productTracker: ProductTracker): Promi
     // TODO
     // productTracker CAPTCHA ?!!?!
     if (captchaElement && productTracker) {
-      console.log('Captcha geldi.');
       const captchaImg = $('form img').attr('src');
 
       const captchaChannel = productTracker.discord.channels.cache.get(discordConfig.captchaChannelId);
@@ -103,8 +102,6 @@ const productParser = async (url: string, productTracker: ProductTracker): Promi
         const captchaMessage = await captchaChannel.send({
           content: `Captcha!\n\nÜrün: ${url}\n\n${captchaImg}` + (discordConfig.captchaNotifyUserId ? `\n<@${discordConfig.captchaNotifyUserId}>` : ''),
         });
-
-        console.log('Captcha mesajı gönderildi, mesaj id: ', captchaMessage.id);
 
         captchaMessage.channel.awaitMessages({
           filter: (m: Message) => m.reference?.messageId === captchaMessage.id,
@@ -117,18 +114,19 @@ const productParser = async (url: string, productTracker: ProductTracker): Promi
             productTracker.updateCaptcha(captchaAnswer.content.trim().toUpperCase());
           }
         })
-      }
 
-      while (!productTracker.captcha) {
-        await new Promise(r => setTimeout(r, 1000));
+        while (!productTracker.captcha) {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+
+        await captchaMessage.delete();
       }
 
       await page.type('#captchacharacters', productTracker.captcha);
-      await page.click('button[type="submit"]');
 
       productTracker.updateCaptcha('');
 
-      await page.waitForNavigation();
+      await Promise.all([page.click('button[type="submit"]'), page.waitForNavigation()]);
 
       const cookieJson = JSON.stringify(await page.cookies())
       writeFileSync(cookieFileName, cookieJson)

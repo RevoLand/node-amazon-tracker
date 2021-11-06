@@ -1,18 +1,18 @@
 import { getRepository, LessThanOrEqual } from 'typeorm';
 import { URL } from 'url';
 import productParser from '../components/product/productParser';
-import { ProductTracker } from '../components/product/producttracker';
+import { ProductTracker } from '../components/product/ProductTracker';
 import { Product } from '../entity/Product';
 import { CreateProductFromUrlResultInterface } from '../interfaces/CreateProductFromUrlResultInterface';
 import { ProductParseResultInterface } from '../interfaces/ProductParseResultInterface';
 
 export class ProductController {
 
-  static getAll(): Promise<Product[] | undefined> {
+  static all(): Promise<Product[] | undefined> {
     return getRepository(Product).find();
   }
 
-  static getEnabled(): Promise<Product[] | undefined> {
+  static enabled(): Promise<Product[] | undefined> {
     return getRepository(Product).find({
       where: {
         enabled: true
@@ -20,17 +20,18 @@ export class ProductController {
     });
   }
 
-  static getEnabledByCountryAndDate(country: string, lastUpdate: Date): Promise<Product[] | undefined> {
+  static enabledWithCountryAndDateFilter(country: string, lastUpdate: Date): Promise<Product[] | undefined> {
     return getRepository(Product).find({
       where: {
         enabled: true,
         country,
-        updated_at: LessThanOrEqual(lastUpdate)
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        updatedAt: LessThanOrEqual(lastUpdate)
       }
     });
   }
 
-  static findByAsin(asin: string): Promise<Product[] | undefined> {
+  static byAsin(asin: string): Promise<Product[] | undefined> {
     return getRepository(Product).find({
       where: {
         asin
@@ -38,7 +39,7 @@ export class ProductController {
     })
   }
 
-  static findByAsinAndLocale(asin: string, locale: string): Promise<Product | undefined> {
+  static byAsinAndLocale(asin: string, locale: string): Promise<Product | undefined> {
     return getRepository(Product).findOne({
       where: {
         asin: asin,
@@ -50,7 +51,7 @@ export class ProductController {
   static createProductFromUrl = async (url: string, productTracker: ProductTracker) : Promise<CreateProductFromUrlResultInterface | undefined> => {
     const urlParameters = (new URL(url)).searchParams;
     const parsedProductData = await productParser(url, productTracker);
-    const seller_id = urlParameters.has('smid') ? urlParameters.get('smid') ?? '' : undefined;
+    const sellerId = urlParameters.has('smid') ? urlParameters.get('smid') ?? '' : undefined;
     const psc = urlParameters.has('psc') ? Number(urlParameters.get('psc')) : undefined;
 
     if (!parsedProductData) {
@@ -59,43 +60,21 @@ export class ProductController {
     }
 
     const productResult: ProductParseResultInterface = {
-      product: await this.findByAsinAndLocale(parsedProductData.asin, parsedProductData.locale),
+      product: await this.byAsinAndLocale(parsedProductData.asin, parsedProductData.locale),
       parsedData: parsedProductData,
       psc,
-      seller_id
+      sellerId: sellerId
     };
 
     const result: CreateProductFromUrlResultInterface = {
-      productDetail: await this.upsertProductDetail(productResult),
-      existing_product_detail: !! productResult.product
+      productDetail: await this.upsertProduct(productResult),
+      existingProduct: !! productResult.product
     }
 
     return result;
   }
 
-  static createProductDetail = async (productDetailInterface: ProductParseResultInterface): Promise<Product> => {
-    const productDetail = new Product;
-
-    productDetail.asin = productDetailInterface.parsedData.asin;
-    productDetail.name = productDetailInterface.parsedData.title;
-    productDetail.country = productDetailInterface.parsedData.locale;
-    productDetail.image = productDetailInterface.parsedData.image;
-    productDetail.enabled = true;
-    productDetail.psc = productDetailInterface.psc;
-    productDetail.seller = productDetailInterface.parsedData.seller;
-    productDetail.seller_id = productDetailInterface.seller_id;
-    productDetail.price = productDetailInterface.parsedData.price;
-    productDetail.lowest_price = productDetailInterface.parsedData.price;
-    productDetail.current_price = productDetailInterface.parsedData.price;
-
-    await productDetail.save();
-
-    // TODO: Discord related actions?
-
-    return productDetail;
-  }
-
-  static upsertProductDetail = async (productParseResult: ProductParseResultInterface) : Promise<Product> => {
+  static upsertProduct = async (productParseResult: ProductParseResultInterface) : Promise<Product> => {
     const product = productParseResult.product ?? new Product;
 
     product.asin = productParseResult.parsedData.asin;
@@ -107,12 +86,12 @@ export class ProductController {
       product.psc = productParseResult.psc;
     }
 
-    if (typeof productParseResult.seller_id !== 'undefined') {
-      product.seller_id = productParseResult.seller_id;
+    if (typeof productParseResult.sellerId !== 'undefined') {
+      product.sellerId = productParseResult.sellerId;
     }
 
-    if (typeof product.lowest_price === 'undefined' || (typeof productParseResult.parsedData.price !== 'undefined' && productParseResult.parsedData.price < product.lowest_price)) {
-      product.lowest_price = productParseResult.parsedData.price;
+    if (typeof product.lowestPrice === 'undefined' || (typeof productParseResult.parsedData.price !== 'undefined' && productParseResult.parsedData.price < product.lowestPrice)) {
+      product.lowestPrice = productParseResult.parsedData.price;
     }
 
     if (typeof product.price === 'undefined') {
@@ -120,39 +99,12 @@ export class ProductController {
     }
 
     product.seller = productParseResult.parsedData.seller;
-    product.current_price = productParseResult.parsedData.price;
+    product.currentPrice = productParseResult.parsedData.price;
 
     await product.save();
 
     return product;
   }
-
-  static updateProductDetail = async (productDetail: Product, productDetailInterface: ProductParseResultInterface) => {
-    productDetail.asin = productDetailInterface.parsedData.asin;
-    productDetail.name = productDetailInterface.parsedData.title;
-    productDetail.country = productDetailInterface.parsedData.locale;
-    productDetail.image = productDetailInterface.parsedData.image;
-    productDetail.seller = productDetailInterface.parsedData.seller;
-
-    if (typeof productDetailInterface.psc !== 'undefined') {
-      productDetail.psc = productDetailInterface.psc;
-    }
-
-    if (typeof productDetailInterface.seller_id !== 'undefined') {
-      productDetail.seller_id = productDetailInterface.seller_id;
-    }
-
-    if (typeof productDetail.lowest_price === 'undefined' || (typeof productDetailInterface.parsedData.price !== 'undefined' && productDetailInterface.parsedData.price < productDetail.lowest_price)) {
-      productDetail.lowest_price = productDetailInterface.parsedData.price;
-    }
-
-    productDetail.current_price = productDetailInterface.parsedData.price;
-    await productDetail.save();
-
-    // TODO: Discord related actions?
-
-    return productDetail;
-  };
 
   static disableProductTracking = async (productDetail: Product) => {
     productDetail.enabled = false;
@@ -162,19 +114,5 @@ export class ProductController {
     // TODO: Discord related actions?
 
     return productDetail;
-  }
-
-  static deleteProductTracking = async (productDetail: Product) => {
-    try {
-      await productDetail.remove();
-
-      // TODO: Discord related actions?
-
-      return true;
-    } catch (error) {
-      console.error('An error happened while deleting product tracking from database.', error);
-
-      return false;
-    }
   }
 }

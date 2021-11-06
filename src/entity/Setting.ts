@@ -18,7 +18,7 @@ export class Setting extends BaseEntity {
 
     @AfterUpdate()
     async updateProductTracker() {
-      if (this.key !== SettingsEnum.TrackingInterval) {
+      if (this.key !== SettingsEnum.trackingInterval) {
         return;
       }
 

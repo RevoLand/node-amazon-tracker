@@ -1,10 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
-import { exit } from 'process';
 import { ProductController } from '../../../controller/ProductController';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
 import { parseProductUrlsWithTlds } from '../../../helpers/productUrlHelper';
-import { ExitCodesEnum } from '../../../helpers/enums/ExitCodesEnum';
 import productEmbed from '../../../helpers/embeds/productEmbed';
 
 const productCommand: DiscordCommandInterface = {
@@ -26,7 +24,7 @@ const productCommand: DiscordCommandInterface = {
 
     try {
       for (const parsedProductInfo of products) {
-        const product = await ProductController.findByAsinAndLocale(parsedProductInfo.asin, parsedProductInfo.locale);
+        const product = await ProductController.byAsinAndLocale(parsedProductInfo.asin, parsedProductInfo.locale);
         if (!product) {
           // TODO: /product komutundan gelen url'lerde, ürün yoksa takip için eklenmeli mi?
           await interaction.reply({
@@ -48,7 +46,7 @@ const productCommand: DiscordCommandInterface = {
     } catch (error) {
       console.error('An error happened while executing the track command function', error);
 
-      exit(ExitCodesEnum.ProductCommandFailed);
+      throw new Error('ProductCommandFailed');
     }
   }
 }

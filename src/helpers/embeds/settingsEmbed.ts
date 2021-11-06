@@ -5,10 +5,10 @@ import { SettingsEnum } from '../enums/SettingsEnum';
 const settingsEmbed = (settings: Settings): MessageEmbed => {
   const embed = new MessageEmbed()
     .setTitle('Ayarlar')
-    .addField('Takip Aralığı', '' + settings.get(SettingsEnum.TrackingInterval)?.value, true)
-    .addField('En az fiyat düşüşü', '' + settings.get(SettingsEnum.MinimumPriceDrop)?.value, true)
-    .addField('En az fiyat düşüşü (yüzde)', settings.get(SettingsEnum.MinimumPriceDropPercentage)?.value + '%', true)
-    .addField('Yalnızca en düşük fiyat bildirimi', settings.get(SettingsEnum.OnlyNotifyLowestPriceDrops)?.value === '1' ? 'Evet' : 'Hayır', true)
+    .addField('Takip Aralığı', '' + settings.get(SettingsEnum.trackingInterval)?.value, true)
+    .addField('En az fiyat düşüşü', '' + settings.get(SettingsEnum.minimumPriceDrop)?.value, true)
+    .addField('En az fiyat düşüşü (yüzde)', settings.get(SettingsEnum.minimumPriceDropPercentage)?.value + '%', true)
+    .addField('Yalnızca en düşük fiyat bildirimi', settings.get(SettingsEnum.onlyNotifyLowestPriceDrops)?.value === '1' ? 'Evet' : 'Hayır', true)
     .setTimestamp();
 
   return embed;

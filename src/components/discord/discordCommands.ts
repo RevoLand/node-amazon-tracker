@@ -2,11 +2,9 @@ import Collection from '@discordjs/collection';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { readdirSync } from 'fs';
-import { exit } from 'process';
 import discordConfig from '../../config/discord';
 import { DiscordCommandInterface } from '../../interfaces/DiscordCommandInterface';
 import { resolve } from 'path';
-import { ExitCodesEnum } from '../../helpers/enums/ExitCodesEnum';
 
 export const readDiscordCommands = async (): Promise<Collection<string, DiscordCommandInterface>> => {
   console.log('Reading available Discord commands.');
@@ -42,7 +40,7 @@ export const registerDiscordCommands = async (commands: object[]) => {
   } catch (error) {
     console.error('An error happened while registering Discord commands.', error);
 
-    exit(ExitCodesEnum.RegisteringDiscordCommandsFailed);
+    throw new Error('RegisteringDiscordCommandsFailed');
   }
 
   console.log('Discord commands registered.');

@@ -22,14 +22,14 @@ const productPriceDropEmbed = (priceChange: PriceChangeInterface): MessageEmbed 
     .setDescription(descriptionText)
     .setURL(priceChange.product.getUrl())
     .addField('Takibe Başlandığı Fiyat', '' + priceChange.product.price, true)
-    .addField('Bilinen En Düşük Fiyat', `${priceChange.product.lowest_price}`, true)
-    .addField('Önceki Fiyat', `${priceChange.priceHistory.old_price}`, true)
-    .addField('Yeni Fiyat', `${priceChange.priceHistory.new_price} (-${priceChange.priceDiff})`, true)
+    .addField('Bilinen En Düşük Fiyat', `${priceChange.product.lowestPrice}`, true)
+    .addField('Önceki Fiyat', `${priceChange.priceHistory.oldPrice}`, true)
+    .addField('Yeni Fiyat', `${priceChange.priceHistory.newPrice} (-${priceChange.priceDiff})`, true)
     .addField('En Düşük Fiyata Olan Fark', `${priceChange.lowestPriceDiff} (% ${priceChange.lowestPriceDiffPerc})`, true)
     .setAuthor(priceChange.product.country)
     .setTimestamp();
 
-  if (priceChange.priceHistory.prime_only) {
+  if (priceChange.priceHistory.primeOnly) {
     embed.addField('Prime Özel', 'Evet', true);
   }
 

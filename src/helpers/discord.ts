@@ -1,23 +1,20 @@
-
 import { Client, Intents } from 'discord.js';
-import { exit } from 'process';
 import { productTrackers } from '../app';
 import { readDiscordCommands, registerDiscordCommands } from '../components/discord/discordCommands';
 import discordReadyEvent from '../components/discord/events/discordReadyEvent';
-import { ProductTracker } from '../components/product/producttracker';
+import { ProductTracker } from '../components/product/ProductTracker';
 import discordConfig from '../config/discord';
 import { ProductController } from '../controller/ProductController';
 import { SettingController } from '../controller/SettingController';
 import productCreatedEmbed from './embeds/productCreatedEmbed';
 import productUpdated from './embeds/productUpdatedEmbed';
-import { ExitCodesEnum } from './enums/ExitCodesEnum';
 import { parseProductUrls } from './productUrlHelper';
 
 export const connectToDiscord = async (): Promise<Client> => {
   if (!discordConfig.botToken) {
     console.error('Discord bot token is not set.');
 
-    exit(ExitCodesEnum.DiscordBotTokenNotSet);
+    throw new Error('DiscordBotTokenNotSet');
   }
 
   console.log('Preparing Discord connection.');
@@ -53,6 +50,10 @@ export const connectToDiscord = async (): Promise<Client> => {
     // TODO:
     // Refactor with commands/track.ts
     client.on('messageCreate', async message => {
+      if (message.author.bot || message.content.indexOf('!') !== 0) {
+        return;
+      }
+
       if (message.content.startsWith('!track ') || message.content.startsWith('!takip ')) {
         const productUrls = parseProductUrls(message.content);
 
@@ -82,7 +83,7 @@ export const connectToDiscord = async (): Promise<Client> => {
               continue;
             }
 
-            const productEmbed = createProductResult.existing_product_detail ?
+            const productEmbed = createProductResult.existingProduct ?
               productUpdated(createProductResult.productDetail) :
               productCreatedEmbed(createProductResult.productDetail);
             await message.channel.send({
@@ -92,7 +93,7 @@ export const connectToDiscord = async (): Promise<Client> => {
         } catch (error) {
           console.error('An error happened while executing the !track command function.', error);
 
-          exit(ExitCodesEnum.TrackCommandFailed);
+          throw new Error('TrackCommandFailed');
         }
       }
     });
@@ -102,7 +103,7 @@ export const connectToDiscord = async (): Promise<Client> => {
   } catch (error) {
     console.error('An error happened while connecting to Discord.', error);
 
-    exit(ExitCodesEnum.DiscordConnectionFailed);
+    throw new Error('DiscordConnectionFailed');
   }
 
   return client;

@@ -1,8 +1,6 @@
-import { exit } from 'process';
 import { getRepository } from 'typeorm';
 import { Settings } from '../components/Settings';
 import { Setting } from '../entity/Setting';
-import { ExitCodesEnum } from '../helpers/enums/ExitCodesEnum';
 import { SettingsEnum } from '../helpers/enums/SettingsEnum';
 
 export class SettingController {
@@ -11,19 +9,19 @@ export class SettingController {
   static insertDefaultSettings = async () => {
     const defaultSettings = [
       {
-        name: SettingsEnum.TrackingInterval,
+        name: SettingsEnum.trackingInterval,
         value: '20'
       },
       {
-        name: SettingsEnum.MinimumPriceDrop,
+        name: SettingsEnum.minimumPriceDrop,
         value: '10'
       },
       {
-        name: SettingsEnum.MinimumPriceDropPercentage,
+        name: SettingsEnum.minimumPriceDropPercentage,
         value: '3'
       },
       {
-        name: SettingsEnum.OnlyNotifyLowestPriceDrops,
+        name: SettingsEnum.onlyNotifyLowestPriceDrops,
         value: '1'
       },
     ];
@@ -39,7 +37,7 @@ export class SettingController {
     } catch (error) {
       console.error('An error happened while inserting default settings.', error);
 
-      exit(ExitCodesEnum.CouldntInsertDefaultSettings)
+      throw new Error('CouldntInsertDefaultSettings')
     }
   }
 }

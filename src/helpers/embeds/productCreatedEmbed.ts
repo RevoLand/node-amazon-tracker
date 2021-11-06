@@ -7,10 +7,10 @@ const productCreatedEmbed = (product: Product): MessageEmbed => {
     .setTitle(product.name ?? '')
     .setURL(product.getUrl())
     .setAuthor(product.country)
-    .setTimestamp(product.updated_at);
+    .setTimestamp(product.updatedAt);
 
-  if (product.current_price) {
-    embed.addField('Güncel Fiyat', '' + product.current_price);
+  if (product.currentPrice) {
+    embed.addField('Güncel Fiyat', '' + product.currentPrice);
   }
 
   if (product.image) {

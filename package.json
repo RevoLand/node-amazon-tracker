@@ -3,6 +3,9 @@
   "version": "1.0.1",
   "description": "",
   "main": "src/app.js",
+  "engines": {
+    "node": ">=16.6.0"
+  },
   "scripts": {
     "dev": "ts-node ./src/app.ts",
     "build": "tsc --build",
@@ -41,9 +44,8 @@
     "@types/node": "16.11.6",
     "@typescript-eslint/eslint-plugin": "5.3.0",
     "@typescript-eslint/parser": "5.3.0",
-    "eslint": "8.2.0",
+    "eslint": "7.32.0",
     "eslint-plugin-jest": "25.2.3",
-    "eslint-plugin-node": "11.1.0",
     "jest": "27.3.1",
     "ts-jest": "27.0.7",
     "ts-node": "10.4.0",
