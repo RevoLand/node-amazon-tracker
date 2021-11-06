@@ -7,6 +7,9 @@ import productUpdated from '../../../helpers/embeds/productUpdatedEmbed';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
 import { parseProductUrls } from '../../../helpers/productUrlHelper';
 import { ExitCodesEnum } from '../../../helpers/enums/ExitCodesEnum';
+import { productTrackers } from '../../../app';
+import { ProductTracker } from '../../product/producttracker';
+import { SettingController } from '../../../controller/SettingController';
 
 const trackCommand: DiscordCommandInterface = {
   data: new SlashCommandBuilder()
@@ -31,8 +34,14 @@ const trackCommand: DiscordCommandInterface = {
         ephemeral: true
       });
 
+      const productTracker = productTrackers.find(_productTracker => _productTracker.country === 'discord') ?? new ProductTracker('discord', await SettingController.getAll(), interaction.client);
+
+      if (!productTracker.browser) {
+        await productTracker.setBrowser();
+      }
+
       for (const productUrl of productUrls) {
-        const createProductResult = await ProductController.createProductFromUrl(productUrl, interaction.client);
+        const createProductResult = await ProductController.createProductFromUrl(productUrl, productTracker);
         if (!createProductResult) {
           console.error('No product detail returned for product url, skipping.', productUrl);
           continue;

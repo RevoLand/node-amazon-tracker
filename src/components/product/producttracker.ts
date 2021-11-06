@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { Client } from 'discord.js';
+import puppeteer from 'puppeteer';
 import { exit } from 'process';
 import discordConfig from '../../config/discord';
 import { ProductController } from '../../controller/ProductController';
@@ -13,9 +14,12 @@ import { ProductParseResultInterface } from '../../interfaces/ProductParseResult
 import { Settings } from '../Settings';
 import productParser from './productParser';
 import { ProductTrackerQueue } from './producttrackerqueue';
+import { shuffle } from 'lodash';
 
 export class ProductTracker {
   queue: ProductTrackerQueue;
+
+  browser: puppeteer.Browser;
 
   settings: Settings;
 
@@ -31,10 +35,19 @@ export class ProductTracker {
 
   captcha: string;
 
-  constructor(settings: Settings, discord: Client) {
+  country: string;
+
+  constructor(country: string, settings: Settings, discord: Client) {
+    this.country = country;
     this.settings = settings;
     this.discord = discord;
     this.queue = new ProductTrackerQueue;
+  }
+
+  async setBrowser() {
+    this.browser = await puppeteer.launch({
+      headless: true
+    });
   }
 
   async start() {
@@ -49,6 +62,8 @@ export class ProductTracker {
     if (this.status) {
       return;
     }
+
+    await this.setBrowser();
 
     while (!this.discord.isReady()) {
       console.log('Discord client is not ready!');
@@ -89,30 +104,36 @@ export class ProductTracker {
 
     this.interval = undefined;
     this.status = false;
+    await this.browser.close();
   }
 
   async queueProductsForTracking() {
-    console.log('Queueing products for tracking... ' + dayjs().toString());
+    console.log(`[${this.country}] Queueing products for tracking... ` + dayjs().toString());
 
-    let productsForTracking = await ProductController.getEnabled();
-    this.enabledProductsCount = productsForTracking?.length ?? 0;
-    this.discord.user?.setActivity(`${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
+    try {
+      let productsForTracking = await ProductController.getEnabledByCountryAndDate(this.country, dayjs().subtract(this.trackingIntervalMinutes, 'm').toDate());
+      this.enabledProductsCount = productsForTracking?.length ?? 0;
 
-    if (!productsForTracking || productsForTracking.length === 0) {
-      return;
+      if (!productsForTracking || productsForTracking.length === 0) {
+        return;
+      }
+
+      productsForTracking = productsForTracking.filter(product => !this.queue.hasProduct(product));
+
+      if (productsForTracking.length === 0) {
+        return;
+      }
+
+      const shuffledProductsList = shuffle(productsForTracking);
+
+      for (const product of shuffledProductsList) {
+        this.queue.enqueue(product);
+      }
+    } catch (error) {
+      console.error('Hata - queueProductsForTracking', error);
     }
 
-    productsForTracking = productsForTracking.filter(product => dayjs(product.updated_at).isBefore(dayjs().subtract(this.trackingIntervalMinutes, 'm')) && !this.queue.hasProduct(product));
-
-    if (productsForTracking.length === 0) {
-      return;
-    }
-
-    for (const product of productsForTracking) {
-      this.queue.enqueue(product);
-    }
-
-    console.log(`Queued ${this.queue.length()} products for tracking.`)
+    console.log(`[${this.country}] Queued ${this.queue.length()} products for tracking.`)
   }
 
   async tracker() {
@@ -136,8 +157,7 @@ export class ProductTracker {
       // Reload latest data from database
       product.reload();
 
-      this.discord.user?.setActivity(`Ürüne gidiliyor. | ${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
-      const parsedProductData = await productParser(product.getUrl(), this.discord);
+      const parsedProductData = await productParser(product.getUrl(), this);
 
       if (!parsedProductData) {
         console.error('Ürün bilgisi ayrıştırılamadı.', product);
@@ -215,10 +235,8 @@ export class ProductTracker {
         parsedData: parsedProductData
       };
 
-      this.discord.user?.setActivity(`Ürün kaydediliyor. | ${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
       await ProductController.upsertProductDetail(productResult);
-      this.discord.user?.setActivity(`${this.enabledProductsCount} ürün`, { type: 'WATCHING' });
-      await new Promise(r => setTimeout(r, 5000));
+      await new Promise(r => setTimeout(r, 10000));
     }
 
     await new Promise(r => setTimeout(r, 10000));

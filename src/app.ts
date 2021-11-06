@@ -4,8 +4,9 @@ import { connectToSql } from './helpers/sql';
 import { connectToDiscord } from './helpers/discord';
 import { SettingController } from './controller/SettingController';
 import { ProductTracker } from './components/product/producttracker';
+import countries from './config/countries';
 
-export let productTrackerMain: ProductTracker;
+export const productTrackers: ProductTracker[] = [];
 
 const main = async () => {
   await connectToSql();
@@ -17,8 +18,19 @@ const main = async () => {
 
   const discord = await connectToDiscord();
 
-  productTrackerMain = new ProductTracker(settings, discord);
-  productTrackerMain.start();
+  countries.allowed_countries.forEach(country => {
+    const productTracker = new ProductTracker(country, settings, discord);
+
+    productTrackers.push(productTracker);
+
+    productTracker.start();
+  });
+
+  const productTracker = new ProductTracker('discord', settings, discord);
+
+  productTrackers.push(productTracker);
+
+  productTracker.setBrowser();
 };
 
 main();

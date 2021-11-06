@@ -1,7 +1,7 @@
-import { Client } from 'discord.js';
-import { getRepository } from 'typeorm';
+import { getRepository, LessThanOrEqual } from 'typeorm';
 import { URL } from 'url';
 import productParser from '../components/product/productParser';
+import { ProductTracker } from '../components/product/producttracker';
 import { Product } from '../entity/Product';
 import { CreateProductFromUrlResultInterface } from '../interfaces/CreateProductFromUrlResultInterface';
 import { ProductParseResultInterface } from '../interfaces/ProductParseResultInterface';
@@ -16,6 +16,16 @@ export class ProductController {
     return getRepository(Product).find({
       where: {
         enabled: true
+      }
+    });
+  }
+
+  static getEnabledByCountryAndDate(country: string, lastUpdate: Date): Promise<Product[] | undefined> {
+    return getRepository(Product).find({
+      where: {
+        enabled: true,
+        country,
+        updated_at: LessThanOrEqual(lastUpdate)
       }
     });
   }
@@ -37,9 +47,9 @@ export class ProductController {
     })
   }
 
-  static createProductFromUrl = async (url: string, discord: Client) : Promise<CreateProductFromUrlResultInterface | undefined> => {
+  static createProductFromUrl = async (url: string, productTracker: ProductTracker) : Promise<CreateProductFromUrlResultInterface | undefined> => {
     const urlParameters = (new URL(url)).searchParams;
-    const parsedProductData = await productParser(url, discord);
+    const parsedProductData = await productParser(url, productTracker);
     const seller_id = urlParameters.has('smid') ? urlParameters.get('smid') ?? '' : undefined;
     const psc = urlParameters.has('psc') ? Number(urlParameters.get('psc')) : undefined;
 
@@ -92,7 +102,6 @@ export class ProductController {
     product.name = productParseResult.parsedData.title;
     product.country = productParseResult.parsedData.locale;
     product.image = productParseResult.parsedData.image;
-    product.enabled = true;
 
     if (typeof productParseResult.psc !== 'undefined') {
       product.psc = productParseResult.psc;
@@ -124,7 +133,6 @@ export class ProductController {
     productDetail.country = productDetailInterface.parsedData.locale;
     productDetail.image = productDetailInterface.parsedData.image;
     productDetail.seller = productDetailInterface.parsedData.seller;
-    productDetail.enabled = true;
 
     if (typeof productDetailInterface.psc !== 'undefined') {
       productDetail.psc = productDetailInterface.psc;

@@ -1,13 +1,12 @@
 import { CheerioAPI, load } from 'cheerio';
 import dayjs from 'dayjs';
-import { Client } from 'discord.js';
+import { Message } from 'discord.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import puppeteer from 'puppeteer';
-import { productTrackerMain } from '../../app';
 import discordConfig from '../../config/discord';
 import { trimNewLines } from '../../helpers/common';
 import { getTldFromUrl } from '../../helpers/productUrlHelper';
 import { ProductParserInterface } from '../../interfaces/ProductParserInterface';
+import { ProductTracker } from './producttracker';
 
 export const getParsedProductData = ($: CheerioAPI): ProductParserInterface | undefined => {
   try {
@@ -54,15 +53,12 @@ export const getParsedProductData = ($: CheerioAPI): ProductParserInterface | un
   }
 }
 
-const productParser = async (url: string, discord: Client): Promise<ProductParserInterface | undefined> => {
+const productParser = async (url: string, productTracker: ProductTracker): Promise<ProductParserInterface | undefined> => {
   console.log(dayjs().toString() + ' | Parsing product:', url);
   try {
-    const browser = await puppeteer.launch({
-      headless: true
-    });
-
+    const pages = await productTracker.browser.pages();
     // Open a new page in puppeteer
-    const page = await browser.newPage();
+    const page = pages.length > 0 ? pages[0] : await productTracker.browser.newPage();
 
     await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36 NodeAmazonTracker/1.0.0');
 
@@ -96,34 +92,48 @@ const productParser = async (url: string, discord: Client): Promise<ProductParse
 
     const captchaElement = await page.$('#captchacharacters');
 
-    if (captchaElement) {
+    // TODO
+    // productTracker CAPTCHA ?!!?!
+    if (captchaElement && productTracker) {
       console.log('Captcha geldi.');
       const captchaImg = $('form img').attr('src');
 
-      const captchaChannel = discord.channels.cache.get(discordConfig.captchaChannelId);
+      const captchaChannel = productTracker.discord.channels.cache.get(discordConfig.captchaChannelId);
       if (captchaChannel?.isText()) {
-        captchaChannel.send({
-          content: `Captcha!\n\nÜrün: ${url}\n\n${captchaImg}` + (discordConfig.captchaNotifyUserId ? `\n<@${discordConfig.captchaNotifyUserId}>` : '')
+        const captchaMessage = await captchaChannel.send({
+          content: `Captcha!\n\nÜrün: ${url}\n\n${captchaImg}` + (discordConfig.captchaNotifyUserId ? `\n<@${discordConfig.captchaNotifyUserId}>` : ''),
         });
+
+        console.log('Captcha mesajı gönderildi, mesaj id: ', captchaMessage.id);
+
+        captchaMessage.channel.awaitMessages({
+          filter: (m: Message) => m.reference?.messageId === captchaMessage.id,
+          max: 1
+        }).then((collected) => {
+          const captchaAnswer = collected.first();
+          if (captchaAnswer) {
+            console.log('Captcha yanıtı geldi.', url, captchaAnswer.content);
+
+            productTracker.updateCaptcha(captchaAnswer.content.trim().toUpperCase());
+          }
+        })
       }
 
-      while (!productTrackerMain.captcha) {
+      while (!productTracker.captcha) {
         await new Promise(r => setTimeout(r, 1000));
       }
 
-      await page.type('#captchacharacters', productTrackerMain.captcha);
+      await page.type('#captchacharacters', productTracker.captcha);
       await page.click('button[type="submit"]');
 
-      productTrackerMain.updateCaptcha('');
+      productTracker.updateCaptcha('');
 
       await page.waitForNavigation();
 
       const cookieJson = JSON.stringify(await page.cookies())
       writeFileSync(cookieFileName, cookieJson)
 
-      // Close the browser
-      await browser.close();
-      return await productParser(url, discord);
+      return await productParser(url, productTracker);
     }
 
     const product = getParsedProductData($);
@@ -143,13 +153,8 @@ const productParser = async (url: string, discord: Client): Promise<ProductParse
         url
       })
 
-      // Close the browser
-      await browser.close();
       return;
     }
-
-    // Close the browser
-    await browser.close();
 
     return product;
   } catch (error) {

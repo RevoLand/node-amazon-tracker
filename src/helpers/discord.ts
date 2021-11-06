@@ -15,7 +15,7 @@ export const connectToDiscord = async (): Promise<Client> => {
 
   console.log('Preparing Discord connection.');
 
-  const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+  const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
   const commands = await readDiscordCommands();
 
   // Register commands
