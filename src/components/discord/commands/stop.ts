@@ -2,8 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { DiscordCommandInterface } from '../../../interfaces/DiscordCommandInterface';
 import { parseProductUrlsWithTlds } from '../../../helpers/productUrlHelper';
-import { ProductController } from '../../../controller/ProductController';
-import productTrackingStoppedEmbed from '../../../helpers/embeds/productTrackingStoppedEmbed';
+import { stopTrackingProducts } from '../../../helpers/discord';
 
 const productCommand: DiscordCommandInterface = {
   data: new SlashCommandBuilder()
@@ -13,43 +12,7 @@ const productCommand: DiscordCommandInterface = {
   execute: async (interaction: CommandInteraction) => {
     const products = parseProductUrlsWithTlds(interaction.options.getString('products', true));
 
-    if (products.length === 0) {
-      await interaction.reply({
-        content: 'Girilen mesaj takibe uygun ürün içermiyor 😢',
-        ephemeral: true
-      });
-
-      return;
-    }
-
-    try {
-      for (const parsedProductInfo of products) {
-        const product = await ProductController.byAsinAndLocale(parsedProductInfo.asin, parsedProductInfo.locale);
-        if (!product) {
-          // TODO: /product komutundan gelen url'lerde, ürün yoksa takip için eklenmeli mi?
-          await interaction.reply({
-            content: 'Ürün karşılığı bulunamadı.',
-            ephemeral: true
-          });
-          continue;
-        } else if (!interaction.replied && product.enabled) {
-          await interaction.reply({
-            content: 'Ürün bulundu, takipten çıkartılıyor...',
-            ephemeral: true
-          });
-        }
-
-        await ProductController.disableProductTracking(product);
-
-        await interaction.channel?.send({
-          embeds: [productTrackingStoppedEmbed(product)]
-        })
-      }
-    } catch (error) {
-      console.error('An error happened while executing the stop command function.', error);
-
-      throw new Error('StopCommandFailed');
-    }
+    stopTrackingProducts(products, interaction);
   }
 }
 

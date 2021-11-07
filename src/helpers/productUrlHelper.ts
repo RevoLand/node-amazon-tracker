@@ -1,6 +1,7 @@
 import getUrls from 'get-urls';
 import { URL } from 'url';
 import countries from '../config/countries';
+import { ProductUrlInterface } from '../interfaces/ProductUrlInterface';
 
 export const getTldFromUrl = (urlToParse: string) => new URL(urlToParse).hostname.replace('www.', '').replace('amazon', '');
 
@@ -61,6 +62,6 @@ export const parseProductUrlsWithTlds = (message: string) => {
     return {
       asin: parseAsinFromUrl(productUrl),
       locale: getTldFromUrl(productUrl)
-    };
+    } as ProductUrlInterface;
   });
 }

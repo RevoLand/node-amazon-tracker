@@ -101,8 +101,6 @@ const productParser = async (url: string, productTracker: ProductTracker): Promi
 
     const captchaElement = await page.$('#captchacharacters');
 
-    // TODO
-    // productTracker CAPTCHA ?!!?!
     if (captchaElement && productTracker) {
       const captchaImg = $('form img').attr('src');
 
@@ -115,12 +113,14 @@ const productParser = async (url: string, productTracker: ProductTracker): Promi
         captchaMessage.channel.awaitMessages({
           filter: (m: Message) => m.reference?.messageId === captchaMessage.id,
           max: 1
-        }).then((collected) => {
+        }).then(async (collected) => {
           const captchaAnswer = collected.first();
           if (captchaAnswer) {
             console.log('Captcha yanıtı geldi.', url, captchaAnswer.content);
 
             productTracker.updateCaptcha(captchaAnswer.content.trim().toUpperCase());
+
+            await captchaAnswer.delete();
           }
         })
 
