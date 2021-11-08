@@ -14,6 +14,8 @@ declare global {
       DISCORD_BOTSPAM_CHANNEL_ID: string;
       DISCORD_CAPTCHA_CHANNEL_ID: string;
       DISCORD_CAPTCHA_NOTIFY_USER_ID: string;
+      AZURE_COMPUTERVISIONKEY: string;
+      AZURE_COMPUTERVISIONENDPOINT: string;
     }
   }
 }

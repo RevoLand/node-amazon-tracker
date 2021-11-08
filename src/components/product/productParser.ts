@@ -3,7 +3,8 @@ import dayjs from 'dayjs';
 import { Message } from 'discord.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import discordConfig from '../../config/discord';
-import { trimNewLines } from '../../helpers/common';
+import { trimNewLines, wait } from '../../helpers/common';
+import { computerVision } from '../../helpers/computerVision';
 import { getTldFromUrl } from '../../helpers/productUrlHelper';
 import { ProductParserInterface } from '../../interfaces/ProductParserInterface';
 import { ProductTracker } from './ProductTracker';
@@ -102,33 +103,45 @@ const productParser = async (url: string, productTracker: ProductTracker): Promi
     const captchaElement = await page.$('#captchacharacters');
 
     if (captchaElement && productTracker) {
-      const captchaImg = $('form img').attr('src');
+      const captchaImg = $('form img').attr('src') ?? '';
+      productTracker.updateCaptcha(await computerVision(captchaImg));
 
       const captchaChannel = productTracker.discord.channels.cache.get(discordConfig.captchaChannelId);
       if (captchaChannel?.isText()) {
-        const captchaMessage = await captchaChannel.send({
-          content: `Captcha!\n\nÜrün: ${url}\n\n${captchaImg}` + (discordConfig.captchaNotifyUserId ? `\n<@${discordConfig.captchaNotifyUserId}>` : ''),
-        });
-
-        captchaMessage.channel.awaitMessages({
-          filter: (m: Message) => m.reference?.messageId === captchaMessage.id,
-          max: 1
-        }).then(async (collected) => {
-          const captchaAnswer = collected.first();
-          if (captchaAnswer) {
-            console.log('Captcha yanıtı geldi.', url, captchaAnswer.content);
-
-            productTracker.updateCaptcha(captchaAnswer.content.trim().toUpperCase());
-
-            await captchaAnswer.delete();
-          }
-        })
-
-        while (!productTracker.captcha) {
-          await new Promise(r => setTimeout(r, 1000));
+        let captchaMessageContent = productTracker.captcha.length > 0 ? 'Azure ile çözüldü! 🙄' : 'Captcha! 😓';
+        captchaMessageContent += '\n\n';
+        captchaMessageContent += `Ürün: ${url}\n\n${captchaImg}`;
+        if (productTracker.captcha.length > 0) {
+          captchaMessageContent += `\nAzure Captcha: ${productTracker.captcha}`;
+        } else if (discordConfig.captchaNotifyUserId) {
+          captchaMessageContent += `\n<@${discordConfig.captchaNotifyUserId}>`;
         }
 
-        await captchaMessage.delete();
+        const captchaMessage = await captchaChannel.send({
+          content: captchaMessageContent,
+        });
+
+        if (!productTracker.captcha) {
+          captchaMessage.channel.awaitMessages({
+            filter: (m: Message) => m.reference?.messageId === captchaMessage.id,
+            max: 1
+          }).then(async (collected) => {
+            const captchaAnswer = collected.first();
+            if (captchaAnswer) {
+              console.log('Captcha yanıtı geldi.', url, captchaAnswer.content);
+
+              productTracker.updateCaptcha(captchaAnswer.content.trim().toUpperCase());
+
+              await captchaAnswer.delete();
+            }
+          })
+        }
+
+        while (!productTracker.captcha) {
+          await wait(1000);
+        }
+
+        setTimeout(() => captchaMessage.delete(), 15000);
       }
 
       await page.type('#captchacharacters', productTracker.captcha);

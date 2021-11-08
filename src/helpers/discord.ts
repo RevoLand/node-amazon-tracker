@@ -150,7 +150,7 @@ export const connectToDiscord = async (): Promise<Client> => {
         case 'stop':
         case 'takipsil':
         case 'sil':
-          stopTrackingProducts(parseProductUrlsWithTlds(message.content), message);
+          await stopTrackingProducts(parseProductUrlsWithTlds(message.content), message);
           return;
       }
     });

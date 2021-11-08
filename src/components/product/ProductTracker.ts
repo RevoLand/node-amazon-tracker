@@ -15,6 +15,7 @@ import { Settings } from '../Settings';
 import productParser from './productParser';
 import { ProductTrackerQueue } from './ProductTrackerQueue';
 import { shuffle } from 'lodash';
+import { wait } from '../../helpers/common';
 
 export class ProductTracker {
   queue: ProductTrackerQueue;
@@ -73,7 +74,7 @@ export class ProductTracker {
 
     while (!this.discord.isReady()) {
       console.log('Discord client is not ready!');
-      await new Promise(r => setTimeout(r, 1000));
+      await wait(1000);
     }
 
     this.trackingIntervalMinutes = +trackingInterval.value;
@@ -258,10 +259,10 @@ export class ProductTracker {
       };
 
       await ProductController.upsertProduct(productResult);
-      await new Promise(r => setTimeout(r, 10000));
+      await wait(10000);
     }
 
-    await new Promise(r => setTimeout(r, 10000));
+    await wait(10000);
     this.tracker();
   }
 
