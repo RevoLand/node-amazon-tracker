@@ -259,7 +259,7 @@ export class ProductTracker {
       };
 
       await ProductController.upsertProduct(productResult);
-      await wait(10000);
+      await wait(3000);
     }
 
     await wait(10000);

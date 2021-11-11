@@ -26,7 +26,7 @@ export class ProductController {
         enabled: true,
         country,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        updatedAt: LessThanOrEqual(lastUpdate)
+        updatedAt: LessThanOrEqual(lastUpdate.toISOString())
       }
     });
   }
