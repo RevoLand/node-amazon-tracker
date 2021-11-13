@@ -8,6 +8,7 @@ const productEmbed = (product: Product): MessageEmbed => {
     .addField('Güncel Fiyat', '' + product.currentPrice, true)
     .addField('En Düşük Fiyat', '' + product.lowestPrice, true)
     .addField('Takibe Başlandığı Fiyat', '' + product.price, true)
+    .addField('Takip Durumu', product.enabled ? 'Takip ediliyor.' : 'Takip edilmiyor!')
     .setAuthor(product.country)
     .setTimestamp(product.updatedAt);
 

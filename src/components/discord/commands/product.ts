@@ -8,10 +8,21 @@ import productEmbed from '../../../helpers/embeds/productEmbed';
 const productCommand: DiscordCommandInterface = {
   data: (new SlashCommandBuilder()
     .setName('product')
-    .setDescription('Parses the product url\'s from text and lists to the user.')
-    .addStringOption(option => option.setName('products').setDescription('Message to parse product urls from').setRequired(true))),
+    .setDescription('Product related commands')
+    .addSubcommand(subCommand => subCommand.setName('get')
+      .setDescription('Gets current status of product')
+      .addStringOption(option => option.setName('product').setDescription('Message to parse product url from').setRequired(true)))
+    .addSubcommand(subCommand => subCommand.setName('set')
+      .setDescription('Sets product information')
+      .addStringOption(option => option.setName('product').setDescription('Message to parse product url from').setRequired(true))
+      .addStringOption(option => option.setName('info').setDescription('The product information to change').setRequired(true)
+        .addChoice('Dip Fiyat', 'lowest_price')
+        .addChoice('Takibe Başlandığı Fiyat', 'price')
+        .addChoice('Güncel Fiyat', 'current_price'))
+      .addStringOption(option => option.setName('value').setDescription('The value to set').setRequired(true)))
+  ),
   execute: async (interaction: CommandInteraction) => {
-    const products = parseProductUrlsWithTlds(interaction.options.getString('products', true));
+    const products = parseProductUrlsWithTlds(interaction.options.getString('product', true));
 
     if (products.length === 0) {
       await interaction.reply({
@@ -23,28 +34,49 @@ const productCommand: DiscordCommandInterface = {
     }
 
     try {
-      for (const parsedProductInfo of products) {
-        const product = await ProductController.byAsinAndLocale(parsedProductInfo.asin, parsedProductInfo.locale);
-        if (!product) {
-          // TODO: /product komutundan gelen url'lerde, ürün yoksa takip için eklenmeli mi?
-          await interaction.reply({
-            content: 'Ürün karşılığı bulunamadı.',
-            ephemeral: true
-          });
-          continue;
-        } else if (!interaction.replied) {
-          await interaction.reply({
-            content: 'Ürün bulundu, sonuçlar getiriliyor...',
-            ephemeral: true
-          });
-        }
-
-        await interaction.channel?.send({
-          embeds: [productEmbed(product)]
-        })
+      const product = await ProductController.byAsinAndLocale(products[0].asin, products[0].locale);
+      if (!product) {
+        // TODO: /product komutundan gelen url'lerde, ürün yoksa takip için eklenmeli mi?
+        await interaction.reply({
+          content: 'Ürün karşılığı bulunamadı.',
+          ephemeral: true
+        });
+        return;
       }
+
+      const subCommand = interaction.options.getSubcommand();
+
+      if (subCommand === 'get') {
+        await interaction.reply({
+          embeds: [productEmbed(product)],
+          ephemeral: true
+        });
+
+        return;
+      }
+
+      const info = interaction.options.getString('info', true);
+      const value = interaction.options.getString('value', true);
+
+      switch (info) {
+        case 'lowest_price':
+          product.lowestPrice = +value;
+          break;
+        case 'price':
+          product.price = +value;
+          break;
+        case 'current_price':
+          product.currentPrice = +value;
+          break;
+      }
+
+      await product.save();
+      await interaction.reply({
+        embeds: [productEmbed(product)],
+        ephemeral: true
+      });
     } catch (error) {
-      console.error('An error happened while executing the track command function', error);
+      console.error('An error happened while executing the product command function', error);
 
       throw new Error('ProductCommandFailed');
     }
