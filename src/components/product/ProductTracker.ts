@@ -146,6 +146,15 @@ export class ProductTracker {
     }
 
     console.log(`[${this.country}] Queued ${this.queue.length()} products for tracking.`)
+
+    if (discordConfig.botSpamChannelId && this.queue.length() > 0) {
+      const botSpamChannel = this.discord.channels.cache.get(discordConfig.botSpamChannelId);
+      if (botSpamChannel?.isText()) {
+        botSpamChannel.send({
+          content: `[${this.country}] Queued ${this.queue.length()} products for tracking.`
+        })
+      }
+    }
   }
 
   async tracker() {
