@@ -1,4 +1,6 @@
-Readme file will be updated later.
+This repository has been archived as the project continues as two separate projects.
+- https://github.com/RevoLand/amazon-client
+- https://github.com/RevoLand/amazon-server
 
 ---
 
